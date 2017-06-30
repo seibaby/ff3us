@@ -11,7 +11,7 @@ C20000:  JMP C2000C
          JMP C20E77     ;load equipment data for character in A
          JMP C24730
 
-
+		 
 C2000C:  PHP
          SEP #$30
          LDA #$7E
@@ -661,7 +661,7 @@ C203E4:  PHP
          PHA            ;Put on stack
          PHX
          TAX
-         LDA $C2067B,X  ;get command's "time to wait"
+         LDA C2067B,X  ;get command's "time to wait"
          PLX
          CLC
          ADC $322C,X    ;add it to character's existing "time to wait"
@@ -2756,7 +2756,7 @@ C20FDC:  CLC
          AND #$000F     ;isolate evade
          ASL
          TAX            ;evade nibble * 2, turn into pointer
-         LDA $C21105,X  ;get actual evade boost/reduction of item
+         LDA C21105,X  ;get actual evade boost/reduction of item
          CLC
          ADC $11A8
          STA $11A8      ;add it to other evade boosts
@@ -2766,7 +2766,7 @@ C20FDC:  CLC
          LSR
          LSR
          TAX            ;mblock nibble * 2, turn into pointer
-         LDA $C21105,X  ;get actual mblock boost/reduction of item
+         LDA C21105,X  ;get actual mblock boost/reduction of item
          CLC
          ADC $11AA
          STA $11AA      ;add it to other mblock boosts
@@ -4470,7 +4470,7 @@ C21A44:  LDA $CF8700,X  ;read first byte of command
          BCC C21A44     ;Branch if not a control command
          PHX
          TAX
-         LDA $C21DAF,X  ;# of bytes in the control command
+         LDA C21DAF,X  ;# of bytes in the control command
          PLX
          DEX
 C21A59:  INX
@@ -4576,7 +4576,7 @@ C21AD0:  TDC            ;A = 0
          BCS C21ADC     ;Branch if control command
          LDA #$0F       ;if not control command, it'll be 1 byte long
 C21ADC:  TAX
-         LDA $C21DAF,X  ;# of bytes in the command
+         LDA C21DAF,X  ;# of bytes in the command
          TAX
 C21AE2:  INY
          DEX
@@ -5159,7 +5159,7 @@ C21DBF:  PHX
          LDX #$0A
 C21DC5:  CMP $C21DD8,X  ;pick an attack category?
          BCC C21DD1     ;if attack is in a lower category, try the next one
-         LDA $C21DE3,X  ;choose a command
+         LDA C21DE3,X  ;choose a command
          BRA C21DD6
 C21DD1:  DEX
          BPL C21DC5
@@ -6209,10 +6209,10 @@ C22402:  STA $2000,X
          STZ $2F53      ;clear list of visually flipped entities
          STZ $B0
          STZ $B2
-         LDX #$2602
+         LDX #C22602
          LDY #$3018
          LDA #$001B
-         MVN $C27E    ;copy C2/2602 - C2/261D to 7E/3018 - 7E/3033.
+         MVN $C27E    	;copy C2/2602 - C2/261D to 7E/3018 - 7E/3033.
                         ;unique bits identifying entities, and starting
                         ;addresses of characters' Magic menus
          LDA $11E0
@@ -6498,7 +6498,7 @@ C225FA:  REP #$20
 
 ;Data to load into $3018 and $3019 - unique bits identifying entities
 
-        dw $0001
+C22602:	dw $0001
         dw $0002
         dw $0004
         dw $0008
@@ -6660,7 +6660,7 @@ C226D3:  PHX
          BCS C22701     ;branch if command >= 1Eh , using default function
                         ;pointer of 0
          TAX
-         LDA $C2278A,X  ;get miscellaneous Command properties byte
+         LDA C2278A,X  ;get miscellaneous Command properties byte
          PHA            ;Put on stack
          AND #$E1       ;isolate Abort on Characters, Randomize Target, beat on
                         ;corpses if no valid targets left, and Exclude Attacker
@@ -7138,7 +7138,7 @@ C22966:  PHX
          TAX
          LDY #$11A0
          LDA #$000D
-         MVN $C47E    ;copy 14 spell bytes into RAM
+         MVN $C47E    	;copy 14 spell bytes into RAM
          SEP #$20
          ASL $11A9      ;multiply special effect by 2
          BCC C22987
@@ -9395,7 +9395,7 @@ C2372F:  PHX
          PHY
          PHP
          REP #$31       ;set 16-bit A, X and Y.  clear Carry
-         LDA $C2544A,X  ;address of controlling character's menu
+         LDA C2544A,X  ;address of controlling character's menu
          ADC #$0030
          STA $002181    ;Offset for WRAM to access
          TYX
@@ -12719,15 +12719,15 @@ C24A68:  DEX
 
 C24A76:  REP #$20
          LDX #$04
-C24A7A:  LDA $C24AAB,X
+C24A7A:  LDA C24AAB,X
          CMP $11E0      ;is Battle formation one of the first 3 tiers of
                         ;the final 4-tier multi-battle?
          BNE C24A97     ;branch and check another if no match
-         LDA $C24AAD,X
+         LDA C24AAD,X
          STA $11E0      ;update Battle formation to the next one of the
                         ;tiers
          SEP #$20
-         LDA $C24AB3,X  ;holds some transition animation ID, and indicates
+         LDA C24AB3,X  ;holds some transition animation ID, and indicates
                         ;one of last 3 tiers of final 4-tier multi-battle
                         ;by being non-FFh
          STA $3EE1
@@ -13301,12 +13301,12 @@ C24DB4:  CMP #$0F
          PHA            ;save command #
          XBA            ;get our Slot index
          TAX
-         LDA $C24E4A,X  ;get spell # used by this Slot combo
+         LDA C24E4A,X  ;get spell # used by this Slot combo
          CPX #$02
          BCS C24DD2     ;branch if it's Bahamut or higher -- i.e. neither form
                         ;of Joker Doom
          PHA            ;save spell #
-         LDA $C24E52,X  ;get Joker Doom targeting
+         LDA C24E52,X  ;get Joker Doom targeting
          STA $B8,X      ;if X is 0 [7-7-Bar], mark all party members in $B8
                         ;if X is 1 [7-7-7], mark all enemies in $B9
          LDA $B8
@@ -14219,7 +14219,7 @@ C2527D:  PHX
          PHP
          REP #$30       ;Set 16-bit A, X and Y
          TXY
-         LDA $C2544A,X  ;Get address of character's menu
+         LDA C2544A,X  ;Get address of character's menu
          TAX
          SEP #$20       ;Set 8-bit Accumulator
          LDA $3018,Y
@@ -14380,7 +14380,7 @@ C2532C:  PHX
          PHP
          REP #$30       ;Set 16-bit A, X, and Y
          LDY $3010,X    ;get offset to character info block
-         LDA $C2544A,X  ;get address of character's menu
+         LDA C2544A,X  ;get address of character's menu
          STA $002181    ;this means that future writes to $00218n in this function
                         ;will modify that character's menu?
          LDA $1616,Y    ;1st and 2nd menu slots
@@ -14450,7 +14450,7 @@ C253A5:  LDA $00FC,Y    ;get command from menu slot
          PHA            ;Put on stack
          LDA #$04
          STA $EE        ;start checking Bit 2 of variable $11D6
-C253AF:  LDA $C25452,X  ;commands that can be changed FROM
+C253AF:  LDA C25452,X  ;commands that can be changed FROM
          CMP $01,S      ;is current command one of those commands?
          BNE C253C4     ;branch if not
          LDA $11D6      ;check Battle Effects 1 byte.
@@ -14459,7 +14459,7 @@ C253AF:  LDA $C25452,X  ;commands that can be changed FROM
                         ;Bit 6 = Steal -> Capture
          BIT $EE
          BEQ C253C4
-         LDA $C25457,X  ;commands to change TO
+         LDA C25457,X  ;commands to change TO
          STA $01,S      ;replace command on stack
 C253C4:  ASL $EE        ;will check the next highest bit of $11D6
                         ;in our next iteration
@@ -14748,7 +14748,7 @@ C254DC:  PHX
          AND #$07       ;isolate classification
          PHX
          TAX
-         LDA $C25549,X  ;get a value indexed by item type
+         LDA C25549,X  ;get a value indexed by item type
          PLX
          ASL            ;multiply by 2
          TSB $2E73      ;turn on corresponding bits
@@ -16606,7 +16606,7 @@ C25F9D:  LDA $1763,X
 ; 9999999, and if it exceeds that amount, cap it at 9999999.)
          LDX #$02       ;start pointing to topmost bytes of party GP
                         ;and GP limit
-C25FAB:  LDA $C25FC7,X  ;get current byte of GP limit
+C25FAB:  LDA C25FC7,X  ;get current byte of GP limit
          CMP $1860,X    ;compare to corresponding byte of party GP
          BEQ C25FC2     ;if the byte values match, we don't know how
                         ;the overall 24-bit values compare yet, so
@@ -16617,7 +16617,7 @@ C25FAB:  LDA $C25FC7,X  ;get current byte of GP limit
                         ;no need to alter anything or compare further
          LDX #$02       ;if we reached here, we know party GP must
                         ;exceed the 9999999 limit, so cap it.
-C25FB8:  LDA $C25FC7,X
+C25FB8:  LDA C25FC7,X
          STA $1860,X
          DEX
          BPL C25FB8     ;update all 3 bytes of the party's GP
@@ -17098,12 +17098,12 @@ C26235:  PHP
          LDX #$0002     ;The following loops will compare the character's
                         ;new Experience (held in $F6 - $F8 to 15000000, and
                         ;if it exceeds that amount, cap it at 15000000.
-C2624E:  LDA $C26276,X
+C2624E:  LDA C26276,X
          CMP $F6,X
          BEQ C26264
          BCS C26267
          LDX #$0002
-C2625B:  LDA $C26276,X
+C2625B:  LDA C26276,X
          STA $F6,X
          DEX
          BPL C2625B
@@ -17377,7 +17377,7 @@ C263B4:  BCC C263DA     ;exit function if less than 5 targets have damage
          TAY
          LDX #$33D0
          LDA #$0013
-         MVN $7E7E    ;copy $33D0 thru $33E3, the damage variables for all
+         MVN $7E7E    	;copy $33D0 thru $33E3, the damage variables for all
                         ;10 targets, to some other memory location
          PLP
 C263DA:  RTS
