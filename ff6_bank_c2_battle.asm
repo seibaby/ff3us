@@ -1,4 +1,5 @@
 
+;@xkas
 ;xkas 0.06
 hirom
 ;header
@@ -11,7 +12,6 @@ C20000:  JMP C2000C
          JMP C20E77     ;load equipment data for character in A
          JMP C24730
 
-		 
 C2000C:  PHP
          SEP #$30
          LDA #$7E
@@ -164,7 +164,7 @@ C200E4:  TSB $3F2C      ;set "Jumping" flag for whomever is held in A
 C200F9:  SEC
          ROR $3406      ;make $3406 negative.  this defaults to not leaving
                         ;off processing any entity.
-         PEA $0018      ;will return to C2/0019
+         PEA.w C20019-1 ;will return to C2/0019
 C20100:  LDA #$12
          STA $B5
          STA $3A7C
@@ -261,7 +261,7 @@ C20183:  LDA $3AA0,X
                         ;will be able to Mimic it if he/she tries.
 C201A6:  LDA #$A0
          TSB $B0        ;indicate entity has executed conventional turn since
-                        ;C20073 was last reached, and indicate we're in middle
+;                                     C20073 was last reached, and indicate we're in middle
                         ;of processing a conventional linked list queue
          LDA #$10
          TRB $3A46      ;clear "Palidor was summoned this turn" flag
@@ -661,7 +661,7 @@ C203E4:  PHP
          PHA            ;Put on stack
          PHX
          TAX
-         LDA C2067B,X  ;get command's "time to wait"
+         LDA C2067B,X   ;get command's "time to wait"
          PLX
          CLC
          ADC $322C,X    ;add it to character's existing "time to wait"
@@ -738,14 +738,14 @@ C20462:  PHX            ;save slot position
          BMI C20482     ;branch if slot empty
          CLC            ;clear Carry
          JSR C25217     ;X = A DIV 8, A = 2 ^ (A MOD 8)
-         AND $C204D0,X  ;is command allowed when Muddled/Charmed/Colosseum?
+         AND C204D0,X   ;is command allowed when Muddled/Charmed/Colosseum?
          BEQ C20482     ;branch if not
          LDA $F4
          BMI C20488     ;Branch if Muddled/Charmed/Colosseum but not Berserked
          LDA $01,S      ;get command
          CLC
          JSR C25217     ;X = A DIV 8, A = 2 ^ (A MOD 8)
-         AND $C204D4,X  ;is command allowed when Berserked/Zombied?
+         AND C204D4,X   ;is command allowed when Berserked/Zombied?
          BNE C20488     ;branch if so
 
 C20482:  LDA #$FF
@@ -767,14 +767,14 @@ C20488:  TDC            ;clear 16-bit A
 ; is called for the command.)
 
          LDX #$08
-C2048D:  CMP $C204D8,X  ;does our current command match one from table?
+C2048D:  CMP C204D8,X   ;does our current command match one from table?
          BNE C20499     ;if not, compare it to a second command in this
                         ;loop iteration
          JSR (C204E2,X) ;if it does, call the special code used by
                         ;that command
          XBA            ;put attack/spell # in top of A
          BRA C204A9     ;exit loop, as we found our command
-C20499:  CMP $C204D9,X  ;does our current command match one from table?
+C20499:  CMP C204D9,X   ;does our current command match one from table?
          BNE C204A5     ;if not, our current command didn't match either
                         ;compared one.  so move to new pair of commands
                         ;in table, and repeat loop
@@ -837,9 +837,9 @@ C204CE:  PLX
 ;Data - commands allowed when Muddled/Charmed/Colosseum brawling
 
 C204D0: db $ED  ;Fight, Magic, Morph, Steal, Capture, SwdTech
-        db $3E  ;Tools, Blitz, Runic, Lore, Sketch
-        db $DD  ;Rage, Mimic, Dance, Row, Jump, X-Magic
-        db $2D  ;GP Rain, Health, Shock, MagiTek
+      : db $3E  ;Tools, Blitz, Runic, Lore, Sketch
+      : db $DD  ;Rage, Mimic, Dance, Row, Jump, X-Magic
+      : db $2D  ;GP Rain, Health, Shock, MagiTek
 
 ;in other words: Item, Revert, Throw, Control, Slot, Leap, Def., Summon, and Possess
 ;are excluded)
@@ -847,42 +847,42 @@ C204D0: db $ED  ;Fight, Magic, Morph, Steal, Capture, SwdTech
 ;Data - commands allowed when Berserked/Zombied
 
 C204D4: db $41  ;Fight, Capture
-        db $00  ;none
-        db $41  ;Rage, Jump
-        db $20  ;MagiTek
+      : db $00  ;none
+      : db $41  ;Rage, Jump
+      : db $20  ;MagiTek
 
 
 ;Commands that need special functions when character acts automatically
 
 C204D8: db $02   ;Magic
 C204D9: db $17   ;X-Magic
-        db $07   ;SwdTech
-        db $0A   ;Blitz
-        db $10   ;Rage
-        db $13   ;Dance
-        db $0C   ;Lore
-        db $03   ;Morph
-        db $1D   ;MagiTek
-        db $09   ;Tools
+      : db $07   ;SwdTech
+      : db $0A   ;Blitz
+      : db $10   ;Rage
+      : db $13   ;Dance
+      : db $0C   ;Lore
+      : db $03   ;Morph
+      : db $1D   ;MagiTek
+      : db $09   ;Tools
 
 
 ;Code pointers
 
-C204E2: dw $051A     ;Magic
-        dw $0560     ;SwdTech
-        dw $05D1     ;Rage
-        dw $04F6     ;Lore
-        dw $0584     ;MagiTek
+C204E2: dw C2051A     ;Magic
+      : dw C20560     ;SwdTech
+      : dw C205D1     ;Rage
+      : dw C204F6     ;Lore
+      : dw C20584     ;MagiTek
 
-C204EC: dw $051A     ;X-Magic
-        dw $0575     ;Blitz
-        dw $059C     ;Dance
-        dw $0557     ;Morph
-        dw $058D     ;Tools
+C204EC: dw C2051A     ;X-Magic
+      : dw C20575     ;Blitz
+      : dw C2059C     ;Dance
+      : dw C20557     ;Morph
+      : dw C2058D     ;Tools
 
 
 ;Lore
-         LDA $3EE5,Y    ;Status Byte 2
+C204F6:  LDA $3EE5,Y    ;Status Byte 2
          BIT #$08
          BNE C2054F     ;Branch if Mute
          LDA $3A87      ;Number of Lores possessed
@@ -958,12 +958,12 @@ C2054F:  DEC $F5        ;decrement # of valid command slots
          TDC            ;clear 16-bit A.  note that only the bottom 8-bits,
                         ;which indicate the attack/spell #, matter..
                         ;the command # is loaded by the stack retrieval at
-                        ;C204A9, and will obviously be FFh in this case.)
+;                                     C204A9, and will obviously be FFh in this case.)
          RTS
 
 
 ;Morph
-         LDA #$0F
+C20557:  LDA #$0F
          CMP $1CF6      ;Morph supply
          TDC            ;clear 16-bit A
          BCS C2054F     ;if Morph supply isn't at least 16, don't allow
@@ -972,7 +972,7 @@ C2054F:  DEC $F5        ;decrement # of valid command slots
 
 
 ;SwdTech
-         LDA $3BA4,Y    ;Special properties for right-hand weapon slot
+C20560:  LDA $3BA4,Y    ;Special properties for right-hand weapon slot
          ORA $3BA5,Y    ;'' for left-hand
          BIT #$02       ;is Swdtech allowed by at least one hand?
          BEQ C2054F     ;if not, don't use Swdtech as command
@@ -985,7 +985,7 @@ C2054F:  DEC $F5        ;decrement # of valid command slots
 
 
 ;Blitz
-         TDC
+C20575:  TDC
          LDA $1D28      ;Known Blitzes
          JSR C2522A     ;Pick a random bit that is set
          JSR C251F0     ;Get which bit is picked
@@ -1012,7 +1012,7 @@ C20584:  LDA #$03
 
 
 ;Tools
-         TDC
+C2058D:  TDC
          LDA $3A9B      ;Which tools are owned
          JSR C2522A     ;Pick a random tool that is owned
          JSR C251F0     ;Get which bit is set, thus returning a 0-7
@@ -1043,7 +1043,7 @@ C205B2:  ASL
                         ;at $CFFE80
          JSR C24B5A     ;RNG: 0 to 255
          LDX #$02
-C205BB:  CMP $C205CE,X  ;see data below for chances of each step
+C205BB:  CMP C205CE,X   ;see data below for chances of each step
          BCS C205C3
          INC $EE        ;move to next step for this Dance
 C205C3:  DEX
@@ -1058,8 +1058,8 @@ C205C3:  DEX
 ;Probabilities: Dance Step 0 = 7/16, Step 1 = 6/16, Step 2 = 2/16, Step 3 = 1/16)
 
 C205CE: db $10
-        db $30
-        db $90
+      : db $30
+      : db $90
 
 
 ;Picks a Rage [when Muddled/Berserked/etc], and picks the Rage move
@@ -1190,37 +1190,37 @@ C20671:  PLA
 ;how this applies to enemies.
 
 C2067B: db $10   ;Fight
-        db $10   ;Item
-        db $20   ;Magic
-        db $00   ;Morph
-        db $00   ;Revert
-        db $10   ;Steal
-        db $10   ;Capture
-        db $10   ;SwdTech
-        db $10   ;Throw
-        db $10   ;Tools
-        db $10   ;Blitz
-        db $10   ;Runic
-        db $20   ;Lore
-        db $10   ;Sketch
-        db $10   ;Control
-        db $10   ;Slot
-        db $10   ;Rage
-        db $10   ;Leap
-        db $10   ;Mimic
-        db $10   ;Dance
-        db $10   ;Row
-        db $10   ;Def.
-        db $E0   ;Jump
-        db $20   ;X-Magic
-        db $10   ;GP Rain
-        db $10   ;Summon
-        db $20   ;Health
-        db $20   ;Shock
-        db $10   ;Possess
-        db $10   ;MagiTek
-        db $00
-        db $00
+      : db $10   ;Item
+      : db $20   ;Magic
+      : db $00   ;Morph
+      : db $00   ;Revert
+      : db $10   ;Steal
+      : db $10   ;Capture
+      : db $10   ;SwdTech
+      : db $10   ;Throw
+      : db $10   ;Tools
+      : db $10   ;Blitz
+      : db $10   ;Runic
+      : db $20   ;Lore
+      : db $10   ;Sketch
+      : db $10   ;Control
+      : db $10   ;Slot
+      : db $10   ;Rage
+      : db $10   ;Leap
+      : db $10   ;Mimic
+      : db $10   ;Dance
+      : db $10   ;Row
+      : db $10   ;Def.
+      : db $E0   ;Jump
+      : db $20   ;X-Magic
+      : db $10   ;GP Rain
+      : db $10   ;Summon
+      : db $20   ;Health
+      : db $20   ;Shock
+      : db $10   ;Possess
+      : db $10   ;MagiTek
+      : db $00
+      : db $00
 
 
 ;Do various responses to three mortal statuses
@@ -2597,36 +2597,36 @@ C20F42:  PLP
 
 ;Code Pointers
 
-C20F47: dw $0F67 ;Do nothing (shouldn't be called, as i can't get shields in both hands)
-        dw $0F61 ;2nd hand is occupied by weapon, 1st hand holds nonweapon
+C20F47: dw C20F67 ;Do nothing (shouldn't be called, as i can't get shields in both hands)
+      : dw C20F61 ;2nd hand is occupied by weapon, 1st hand holds nonweapon
                   ;so 2nd hand will strike.  i.e. it retains some Battle Power
-        dw $0F68 ;1st hand is occupied by weapon, 2nd hand holds nonweapon
+      : dw C20F68 ;1st hand is occupied by weapon, 2nd hand holds nonweapon
                   ;so 1st hand will strike
-        dw $0F6F ;1st and 2nd hand are both occupied by weapon
-        dw $0F61 ;2nd hand is empty, 1st hand holds nonweapon
+      : dw C20F6F ;1st and 2nd hand are both occupied by weapon
+      : dw C20F61 ;2nd hand is empty, 1st hand holds nonweapon
                   ;so 2nd hand will strike
-        dw $0F67 ;Do nothing  (filler.. shouldn't be called, contradictory 2nd hand)
-        dw $0F6B ;2nd hand is empty, 1st is occupied by weapon
+      : dw C20F67 ;Do nothing  (filler.. shouldn't be called, contradictory 2nd hand)
+      : dw C20F6B ;2nd hand is empty, 1st is occupied by weapon
                   ;(so 1st hand will strike, Gauntlet-ized if applicable)
-        dw $0F67 ;Do nothing  (filler.. shouldn't be called, contradictory 2nd hand)
-        dw $0F68 ;1st hand is empty, 2nd hand holds nonweapon
+      : dw C20F67 ;Do nothing  (filler.. shouldn't be called, contradictory 2nd hand)
+      : dw C20F68 ;1st hand is empty, 2nd hand holds nonweapon
                   ;so 1st hand will strike
-        dw $0F64 ;1st hand is empty, 2nd hand occupied by weapon
+      : dw C20F64 ;1st hand is empty, 2nd hand occupied by weapon
                   ;so 2nd hand will strike, Gauntlet-ized if applicable
-        dw $0F67 ;Do nothing  (filler.. shouldn't be called, contradictory 1st hand)
-        dw $0F67 ;Do nothing  (filler.. shouldn't be called, contradictory 1st hand)
-        dw $0F68 ;1st and 2nd hand both empty)
+      : dw C20F67 ;Do nothing  (filler.. shouldn't be called, contradictory 1st hand)
+      : dw C20F67 ;Do nothing  (filler.. shouldn't be called, contradictory 1st hand)
+      : dw C20F68 ;1st and 2nd hand both empty)
                   ;so might as well strike with 1st hand
 
 ;view C2/10B2 to see how the bits for each hand were set
 
 
-         JSR C20F74
-         STZ $11AC      ;clear Battle Power for 1st hand
-         RTS
+C20F61:  JSR C20F74
+C20F64:  STZ $11AC      ;clear Battle Power for 1st hand
+C20F67:  RTS
 
-         JSR C20F74
-         STZ $11AD      ;clear Battle Power for 2nd hand
+C20F68:  JSR C20F74
+C20F6B:  STZ $11AD      ;clear Battle Power for 2nd hand
          RTS
 
 
@@ -2642,7 +2642,7 @@ C20F47: dw $0F67 ;Do nothing (shouldn't be called, as i can't get shields in bot
 ;(after all, TSB usually _does_ _enable_ things).  At least that's what my forthcoming
 ;patch will assume... ^__^
 
-         LDA #$10       ;Genji Glove Effect
+C20F6F:  LDA #$10       ;Genji Glove Effect
          TSB $11CF      ;Sets Genji Glove effect to be cleared
 C20F74:  LDA #$40
          TRB $11DA      ;turn off Gauntlet effect for 1st hand
@@ -2756,7 +2756,7 @@ C20FDC:  CLC
          AND #$000F     ;isolate evade
          ASL
          TAX            ;evade nibble * 2, turn into pointer
-         LDA C21105,X  ;get actual evade boost/reduction of item
+         LDA C21105,X   ;get actual evade boost/reduction of item
          CLC
          ADC $11A8
          STA $11A8      ;add it to other evade boosts
@@ -2766,7 +2766,7 @@ C20FDC:  CLC
          LSR
          LSR
          TAX            ;mblock nibble * 2, turn into pointer
-         LDA C21105,X  ;get actual mblock boost/reduction of item
+         LDA C21105,X   ;get actual mblock boost/reduction of item
          CLC
          ADC $11AA
          STA $11AA      ;add it to other mblock boosts
@@ -2930,17 +2930,17 @@ C210EA:  STA $11AC,Y    ;if the Battle Power exceeded 255, make it 255
 
 ;Data - Evade and Mblock Boosts/Reductions
 
-C21105: dw $0000   ;0
-        dw $000A   ;+10
-        dw $0014   ;+20
-        dw $001E   ;+30
-        dw $0028   ;+40
-        dw $0032   ;+50
-        dw $FFF6   ;-10
-        dw $FFEC   ;-20
-        dw $FFE2   ;-30
-        dw $FFD8   ;-40
-        dw $FFCE   ;-50
+C21105: dw 0            ;0
+      : dw 10           ;+10
+      : dw 20           ;+20
+      : dw 30           ;+30
+      : dw 40           ;+40
+      : dw 50           ;+50
+      : dw -10          ;-10
+      : dw -20          ;-20
+      : dw -30          ;-30
+      : dw -40          ;-40
+      : dw -50          ;-50
 
 
 ;Called every frame
@@ -3265,8 +3265,8 @@ C2131C:  PLP
 
 ;Code pointers
 
-C2131F: dw $1323     ;HP damage
-        dw $1350     ;MP damage
+C2131F: dw C21323     ;HP damage
+      : dw C21350     ;MP damage
 
 
 ;Deal HP Damage/Healing
@@ -3275,7 +3275,7 @@ C2131F: dw $1323     ;HP damage
 ; Clear if damage not done to target, or if healing done on same strike matches
 ; or exceeds it.)
 
-         JSR C213A7     ;Returns Damage Healed - Damage Taken
+C21323:  JSR C213A7     ;Returns Damage Healed - Damage Taken
          BEQ C2133B     ;Exit function if 0 damage [damage = healing]
          BCC C2133D     ;If Damage > Healing, deal HP damage
          CLC            ;Otherwise, deal HP healing
@@ -3307,7 +3307,7 @@ C2133D:  EOR #$FFFF
 ; Clear if damage not done to target, or if healing done on same strike matches
 ; or exceeds it.)
 
-         JSR C213A7     ;Returns Damage Healed - Damage Taken
+C21350:  JSR C213A7     ;Returns Damage Healed - Damage Taken
          BEQ C2133B     ;Exit function if 0 damage [damage = healing]
          BCC C2136B     ;If Damage > Healing, deal MP damage
          CLC            ;Otherwise, deal MP healing
@@ -3616,7 +3616,7 @@ C2151E:  RTS
 
 ;Sketch
 
-         TYX
+C2151F:  TYX
          JSR C2298A     ;Load command data, and clear special effect,
                         ;magic power, etc.
          LDA #$FF
@@ -3651,7 +3651,7 @@ C21554:  LDA $B6
 
 ;Rage
 
-         LDA $33A8,Y    ;get monster #
+C21560:  LDA $33A8,Y    ;get monster #
          INC
          BNE C21579     ;branch if it's already defined
          LDX $3A93      ;if it's undefined [like with Mimic], get the
@@ -3686,7 +3686,7 @@ C21579:  STY $3A93      ;save the index of our current Rager
 
 ;Steal
 
-         TYX
+C21591:  TYX
          JSR C2298A     ;Load command data, and clear special effect,
                         ;magic power, etc.
          LDA #$A4
@@ -3696,7 +3696,7 @@ C21579:  STY $3A93      ;save the index of our current Rager
 
 ;Blitz
 
-         LDA $B6
+C2159D:  LDA $B6
          BPL C215B0     ;branch if the spell # indicates a Blitz
          LDA #$01
          TRB $B3        ;this will clear targets for a failed Blitz input
@@ -3723,7 +3723,7 @@ C215B5:  LDA $B6
 
 ;Fight - check for Desperation attack first
 
-         CPY #$08
+C215C8:  CPY #$08
          BCS C21610     ;No DA if monster
          LDA $3A3F
          CMP #$03
@@ -3825,10 +3825,10 @@ C21666:  LDA $FE
 
 ;Code pointers
 
-C21676: dw $1692     ;Throw character
-        dw $170D     ;Storm
-        dw $167E     ;Charge
-        dw $161B     ;Normal attack
+C21676: dw C21692     ;Throw character
+      : dw C2170D     ;Storm
+      : dw C2167E     ;Charge
+      : dw C2161B     ;Normal attack
 
 
 ;Umaro's Charge attack
@@ -3847,7 +3847,7 @@ C2167E:  TYX
 
 ;Umaro's Throw character attack
 
-         TYX
+C21692:  TYX
          JSR C217C7     ;attack Battle Power = sum of battle power of
                         ;Umaro's hands.  initialize various other stuff.
          LDA $3018,X
@@ -3926,7 +3926,7 @@ C216EB:  STA $11A6      ;Store in new battle power for attack
 
 ;Storm
 
-         STZ $3415      ;will force to randomly retarget
+C2170D:  STZ $3415      ;will force to randomly retarget
          LDA #$54       ;Storm
          STA $B6        ;Set spell/animation
 C21714:  LDA #$02       ;Magic
@@ -3936,13 +3936,13 @@ C21714:  LDA #$02       ;Magic
 
 ;<>Shock
 
-         LDA #$82       ;"Megahit" spell, which is what has Shock's data
+C2171A:  LDA #$82       ;"Megahit" spell, which is what has Shock's data
          BRA C21720     ;go set that as spell/animation
 
 
 ;Health
 
-         LDA #$2E       ;Cure 2
+C2171E:  LDA #$2E       ;Cure 2
 C21720:  STA $B6        ;Set spell/animation
          LDA #$05
          BRA C21765
@@ -3950,7 +3950,7 @@ C21720:  STA $B6        ;Set spell/animation
 
 ;<>Slot
 
-         LDA #$10
+C21726:  LDA #$10
          TRB $B0        ;???  See functions C2/13D3 and C2/57C2 for usual
                         ;purpose; dunno whether it does anything here.
          LDA $B6
@@ -4006,7 +4006,7 @@ C2177A:  JMP C2317B     ;entity executes one hit
 
 ;Dance
 
-         LDA $3EF8,Y
+C2177D:  LDA $3EF8,Y
          ORA #$01
          STA $3EF8,Y    ;Set Dance status
          LDA #$FF
@@ -4066,7 +4066,7 @@ C217D5:  STA $11A6      ;Battle Power or Spell Power
 
 ;Possess
 
-         TYX
+C217E5:  TYX
          JSR C219C1     ;Load data for command held in $B5, and data of
                         ;"Battle" spell
          LDA #$20
@@ -4078,7 +4078,7 @@ C217D5:  STA $11A6      ;Battle Power or Spell Power
 
 ;Jump
 
-         TYX
+C217F6:  TYX
          JSR C219C1     ;Load data for command held in $B5, and data of
                         ;"Battle" spell
          LDA $3B69,X    ;Battle Power - left hand
@@ -4122,7 +4122,7 @@ C2183C:  LDA $3EF9,X
 
 ;Swdtech
 
-         TYX
+C21847:  TYX
          LDA $B6        ;Battle animation
          PHA            ;Put on stack
          SEC
@@ -4160,7 +4160,7 @@ C21882:  JMP C2317B     ;entity executes one hit (loops for multiple-strike
 
 ;Tools
 
-         LDA $B6
+C21885:  LDA $B6
          SBC #$A2       ;carry was clear, so subtract 163
          STA $B6        ;save unique Tool index.  0 = NoiseBlaster,
                         ;1 = Bio Blaster, etc.
@@ -4169,7 +4169,7 @@ C21882:  JMP C2317B     ;entity executes one hit (loops for multiple-strike
 
 ;<>Throw
 
-         LDA #$02
+C2188D:  LDA #$02
          STA $BD        ;Increment damage by 100%
          LDA #$10
          TRB $B3        ;Clear Ignore Damage Increment on Ignore Defense
@@ -4178,7 +4178,7 @@ C21882:  JMP C2317B     ;entity executes one hit (loops for multiple-strike
 
 ;<>Item
 
-         STZ $3414      ;Set ignore damage modification
+C21897:  STZ $3414      ;Set ignore damage modification
          LDA #$80
          TRB $B3        ;Set Ignore Clear
 C2189E:  TYX
@@ -4243,7 +4243,7 @@ C218EE:  STZ $BD        ;if we reached here for Throw, it's for a Skean
 
 ;GP Rain
 
-         TYX
+C21907:  TYX
          JSR C2298A     ;Load command data, and clear special effect,
                         ;magic power, etc.
          INC $11A6      ;Set spell power to 1
@@ -4263,7 +4263,7 @@ C2191F:  LDA #$A2
 
 ;Revert
 
-         LDA $3EF9,Y
+C21927:  LDA $3EF9,Y
          BIT #$08
          BNE C21937     ;Branch if Morphed
 C2192E:  TYA
@@ -4275,7 +4275,7 @@ C2192E:  TYA
 
 ;Morph
 
-         SEC            ;tell upcoming shared code it's Morph, not Revert
+C21936:  SEC            ;tell upcoming shared code it's Morph, not Revert
 C21937:  PHP
          TYX
          JSR C2298A     ;Load command data, and clear special effect,
@@ -4295,7 +4295,7 @@ C21945:  LSR
 
 ;Row
 
-         TYX
+C2194C:  TYX
          LDA $3AA1,X
          EOR #$20
          STA $3AA1,X    ;Toggle Row
@@ -4307,7 +4307,7 @@ C21945:  LSR
 
 ;Runic
 
-         TYX
+C2195B:  TYX
          LDA $3E4C,X
          ORA #$04
          STA $3E4C,X    ;Set runic
@@ -4319,7 +4319,7 @@ C21945:  LSR
 
 ;Defend
 
-         TYX
+C2196A:  TYX
          LDA #$02
          JSR C25BAB     ;set Defending flag
          JSR C2298A     ;Load command data, and clear special effect,
@@ -4330,7 +4330,7 @@ C21945:  LSR
 
 ;Control
 
-         LDA $3EF9,Y
+C21976:  LDA $3EF9,Y
          BIT #$10
          BEQ C21987     ;Branch if no spell/chant status
          JSR C2192E
@@ -4353,7 +4353,7 @@ C21987:  TYX
 
 ;Leap
 
-         TYX
+C2199D:  TYX
          JSR C2298A     ;Load command data, and clear special effect,
                         ;magic power, etc.
          LDA #$A8
@@ -4367,7 +4367,7 @@ C21987:  TYX
 
 ;Enemy Roulette
 
-         LDA #$0C
+C219B2:  LDA #$0C
          STA $B5        ;Sets command to Lore
          JSR C2175F
          LDA #$21
@@ -4386,60 +4386,60 @@ C219C1:  XBA
 
 ;Code pointers for commands; special commands start at C2/1A03
 
-C219C7: dw $15C8     ;(Fight)
-        dw $1897     ;(Item)
-        dw $1741     ;(Magic)
-        dw $1936     ;(Morph)
-        dw $1927     ;(Revert)
-        dw $1591     ;(Steal)   (05)
-        dw $1610     ;(Capture)
-        dw $1847     ;(Swdtech)
-        dw $188D     ;(Throw)
-        dw $1885     ;(Tools)
-        dw $159D     ;(Blitz)   (0A)
-        dw $195B     ;(Runic)
-        dw $175F     ;(Lore)
-        dw $151F     ;(Sketch)
-        dw $1976     ;(Control)
-        dw $1726     ;(Slot)
-        dw $1560     ;(Rage)    (10)
-        dw $199D     ;(Leap)
-        dw $151E     ;(Mimic)
-        dw $177D     ;(Dance)
-        dw $194C     ;(Row)
-        dw $196A     ;(Def.)    (15)
-        dw $17F6     ;(Jump)
-        dw $1741     ;(X-Magic)
-        dw $1907     ;(GP Rain)
-        dw $1763     ;(Summon)
-        dw $171E     ;(Health)  (1A)
-        dw $171A     ;(Shock)
-        dw $17E5     ;(Possess)
-        dw $175F     ;(Magitek)
-        dw $19B2     ;(1E) (Enemy Roulette)
-        dw $151E     ;(1F) (Jumps to RTS)
-        dw $5072     ;(20) (#$F2 Command script)
-        dw $50D1     ;(21) (#$F3 Command script)
-        dw $500B     ;(22) (Poison, Regen, and Seizure/Phantasm damage or healing)
-        dw $4F57     ;(23) (#$F7 Command script)
-        dw $4F97     ;(24) (#$F5 Command script)
-        dw $50CD     ;(25)
-        dw $4F5F     ;(26) (Doom cast when Condemned countdown reaches 0; Safe, Shell, or
+C219C7: dw C215C8     ;(Fight)
+      : dw C21897     ;(Item)
+      : dw C21741     ;(Magic)
+      : dw C21936     ;(Morph)
+      : dw C21927     ;(Revert)
+      : dw C21591     ;(Steal)   (05)
+      : dw C21610     ;(Capture)
+      : dw C21847     ;(Swdtech)
+      : dw C2188D     ;(Throw)
+      : dw C21885     ;(Tools)
+      : dw C2159D     ;(Blitz)   (0A)
+      : dw C2195B     ;(Runic)
+      : dw C2175F     ;(Lore)
+      : dw C2151F     ;(Sketch)
+      : dw C21976     ;(Control)
+      : dw C21726     ;(Slot)
+      : dw C21560     ;(Rage)    (10)
+      : dw C2199D     ;(Leap)
+      : dw C2151E     ;(Mimic)
+      : dw C2177D     ;(Dance)
+      : dw C2194C     ;(Row)
+      : dw C2196A     ;(Def.)    (15)
+      : dw C217F6     ;(Jump)
+      : dw C21741     ;(X-Magic)
+      : dw C21907     ;(GP Rain)
+      : dw C21763     ;(Summon)
+      : dw C2171E     ;(Health)  (1A)
+      : dw C2171A     ;(Shock)
+      : dw C217E5     ;(Possess)
+      : dw C2175F     ;(Magitek)
+      : dw C219B2     ;(1E) (Enemy Roulette)
+      : dw C2151E     ;(1F) (Jumps to RTS)
+      : dw C25072     ;(20) (#$F2 Command script)
+      : dw C250D1     ;(21) (#$F3 Command script)
+      : dw C2500B     ;(22) (Poison, Regen, and Seizure/Phantasm damage or healing)
+      : dw C24F57     ;(23) (#$F7 Command script)
+      : dw C24F97     ;(24) (#$F5 Command script)
+      : dw C250CD     ;(25)
+      : dw C24F5F     ;(26) (Doom cast when Condemned countdown reaches 0; Safe, Shell, or
                       ;      Reflect* cast when character enters Near Fatal (* no items
                       ;      actually do this, but it's supported); or revival due to Life 3.
-        dw $50DD     ;(27) (Display Scan info)
-        dw $151E     ;(28) (Jumps to RTS)
-        dw $5161     ;(29) (Remove Stop, Reflect, Freeze, or Sleep when time is up)
-        dw $20DE     ;(2A) (Run)
-        dw $642D     ;(2B) (#$FA Command script)
-        dw $51A8     ;(2C)
-        dw $51B2     ;(2D) (Drain from being seized)
-        dw $1DFA     ;(2E) (#$F8 Command script)
-        dw $1E1A     ;(2F) (#$F9 Command script)
-        dw $1E5E     ;(30) (#$FB Command script)
-        dw $151E     ;(31) (Jumps to RTS)
-        dw $151E     ;(32) (Jumps to RTS)
-        dw $151E     ;(33) (Jumps to RTS)
+      : dw C250DD     ;(27) (Display Scan info)
+      : dw C2151E     ;(28) (Jumps to RTS)
+      : dw C25161     ;(29) (Remove Stop, Reflect, Freeze, or Sleep when time is up)
+      : dw C220DE     ;(2A) (Run)
+      : dw C2642D     ;(2B) (#$FA Command script)
+      : dw C251A8     ;(2C)
+      : dw C251B2     ;(2D) (Drain from being seized)
+      : dw C21DFA     ;(2E) (#$F8 Command script)
+      : dw C21E1A     ;(2F) (#$F9 Command script)
+      : dw C21E5E     ;(30) (#$FB Command script)
+      : dw C2151E     ;(31) (Jumps to RTS)
+      : dw C2151E     ;(32) (Jumps to RTS)
+      : dw C2151E     ;(33) (Jumps to RTS)
 
 
 ;Process a monster's main or counterattack script, backing up targets first
@@ -4470,7 +4470,7 @@ C21A44:  LDA $CF8700,X  ;read first byte of command
          BCC C21A44     ;Branch if not a control command
          PHX
          TAX
-         LDA C21DAF,X  ;# of bytes in the control command
+         LDA C21DAF,X   ;# of bytes in the control command
          PLX
          DEX
 C21A59:  INX
@@ -4495,7 +4495,7 @@ C21A5F:  PHP
 
 ;Command Script #$FD
 
-         REP #$20       ;Set 16-bit Accumulator
+C21A74:  REP #$20       ;Set 16-bit Accumulator
          LDA $F0
          STA $F2        ;save current script address as left-off-at
                         ;address
@@ -4527,7 +4527,7 @@ C21A80:  LDA #$03
 ;Also handles bulk of the script-parsing logic, with additional entry points at
 ; C2/1AAF and C2/1AB4.)
 
-         LDA $3A2D      ;Byte 1 of command
+C21A91:  LDA $3A2D      ;Byte 1 of command
          ASL
          TAX
          JSR (C21D55,X) ;Do an FC subcommand, which is an If Statement
@@ -4576,7 +4576,7 @@ C21AD0:  TDC            ;A = 0
          BCS C21ADC     ;Branch if control command
          LDA #$0F       ;if not control command, it'll be 1 byte long
 C21ADC:  TAX
-         LDA C21DAF,X  ;# of bytes in the command
+         LDA C21DAF,X   ;# of bytes in the command
          TAX
 C21AE2:  INY
          DEX
@@ -4604,7 +4604,7 @@ C21AF5:  LDY $F6        ;get target # of entity running script
 
 ;Command Script #$F6
 
-         LDA #$01
+C21B05:  LDA #$01
          XBA
          LDA $3A2D      ;Item or Throw
          BEQ C21B10     ;Branch if item
@@ -4620,7 +4620,7 @@ C21B10:  LDA $3A2E      ;Item to use or throw
 
 ;<>Command Script #$F4
 
-         TDC
+C21B1C:  TDC
          JSR C21A80      ;Pick which attack of three to use;¤%¤%¤% FEh will do
                         ;nothing and exit this function
          BRA C21B28
@@ -4628,7 +4628,7 @@ C21B10:  LDA $3A2E      ;Item to use or throw
 
 ;<>Command Script #$F0
 
-         JSR C21A80      ;Pick which attack of three to use;¤%¤%¤% FEh will do
+C21B22:  JSR C21A80      ;Pick which attack of three to use;¤%¤%¤% FEh will do
                         ;nothing and exit this function
 C21B25:  JSR C21DBF     ;choose a command based on attack #
 C21B28:  TYX
@@ -4652,7 +4652,7 @@ C21B3A:  PLA
 
 ;Command Script #$F1
 
-         LDA $3A2D      ;Script byte 1
+C21B47:  LDA $3A2D      ;Script byte 1
          CLC
          JSR C21F25
          REP #$20
@@ -4663,7 +4663,7 @@ C21B3A:  PLA
 
 ;Command Script #$F5
 
-         LDA $3A2F
+C21B57:  LDA $3A2F
          BNE C21B62     ;branch if command already has targets
          LDA $3019,Y
          STA $3A2F      ;if it doesn't, save the monster who issued command
@@ -4674,31 +4674,31 @@ C21B62:  LDA #$24
 
 ;<>Command Script #$F3
 
-         LDA #$21
+C21B66:  LDA #$21
          BRA C21B78
  
 
 ;<>Command Script #$FB
 
-         LDA #$30
+C21B6A:  LDA #$30
          BRA C21B78
  
 
 ;<>Command Script #$F2
 
-         LDA #$20
+C21B6E:  LDA #$20
          BRA C21B78
  
 
 ;<>Command Script #$F8
 
-         LDA #$2E
+C21B72:  LDA #$2E
          BRA C21B78
  
 
 ;<>Command Script #$F9
 
-         LDA #$2F
+C21B76:  LDA #$2F
 C21B78:  XBA
          LDA $3A2D
          XBA
@@ -4713,7 +4713,7 @@ C21B78:  XBA
 
 ;Command Script #$F7
 
-         TYX
+C21B8E:  TYX
          LDA #$23
          STA $3A7A      ;command is Battle Event
          LDA $3A2D      ;script byte 1
@@ -4726,7 +4726,7 @@ C21B78:  XBA
 
 ;Command Script #$FA
 
-         TYX
+C21BA0:  TYX
          LDA $3A2D
          XBA
          LDA #$2B
@@ -4740,7 +4740,7 @@ C21B78:  XBA
 
 ;Command 06 for FC
 
-         JSR C21D34     ;Set who to check for using command 17
+C21BB7:  JSR C21D34     ;Set who to check for using command 17
          BCC C21BC7     ;Exit if no counter for command 17
          TDC
          LDA $3A2F
@@ -4753,7 +4753,7 @@ C21BC7:  RTS
 
 ;Command 07 for FC
 
-         JSR C21D34     ;Do command 17 for FC
+C21BC8:  JSR C21D34     ;Do command 17 for FC
          BCC C21BD6     ;Exit if no counter for command 17
          TDC
          LDA $3A2F      ;Second byte for FC
@@ -4805,13 +4805,13 @@ C21C25:  RTS
 
 ;Command 09 for FC
 
-         JSR C21BD7     ;Do command 08 for FC
+C21C26:  JSR C21BD7     ;Do command 08 for FC
          JMP C21D26
 
 
 ;Command 1A for FC
 
-         JSR C21D34     ;Do command 17 for FC
+C21C2C:  JSR C21D34     ;Do command 17 for FC
          BCC C21C3A
          LDA $3BE0,Y
          BIT $3A2F
@@ -4822,11 +4822,11 @@ C21C3A:  RTS
 
 ;Command 03 for FC - Counter Item usage
 
-         TYA
+C21C3B:  TYA
          ADC #$13
          TAY
-         INY            ;Command 02 for FC - counter Spell usage - jumps here
-         TYX            ;Command 01 for FC - counter a command - jumps here
+C21C3F:  INY            ;Command 02 for FC - counter Spell usage - jumps here
+C21C40:  TYX            ;Command 01 for FC - counter a command - jumps here
          LDY $3290,X    ;get $3290 or $3291 or $32A4, depending on where
                         ;we entered function.  this is the attacker index [or
                         ;in the case of reflection, the reflector] for the
@@ -4851,7 +4851,7 @@ C21C55:  REP #$20
 
 ;Command 04 for FC
 
-         TYA
+C21C5E:  TYA
          ADC #$15
          TAX            ;could swap these 3 for "TYX" [and a needed "CLC"]
                         ;and use higher offsets below.  maybe this function
@@ -4868,7 +4868,7 @@ C21C6F:  RTS
 
 ;Command 05 for FC
 
-         TYX
+C21C70:  TYX
          LDY $327C,X    ;last attacker [original, not any reflector] to do
                         ;damage to this target, not including the target
                         ;itself
@@ -4882,14 +4882,14 @@ C21C7E:  RTS
 
 ;Command 16 for FC
 
-         REP #$20
+C21C7F:  REP #$20
          LDA $3A44      ;get Global battle time counter
          BRA C21C8B
  
 
 ;<>Command 0B for FC
 
-         REP #$20
+C21C86:  REP #$20
          LDA $3DC0,Y    ;get monster time counter
 C21C8B:  LSR            ;divide timer by 2 before comparing to script
                         ;value
@@ -4908,7 +4908,7 @@ C21C90:  LDX $3A2E      ;First byte for FC
 
 ;Command 0C for FC
 
-         JSR C21C90     ;Do command 0D for FC
+C21C9C:  JSR C21C90     ;Do command 0D for FC
          JMP C21D26
 
 
@@ -4926,7 +4926,7 @@ C21CB3:  RTS
 
 ;Command 15 for FC
 
-         JSR C21CA2     ;Do command 14 for FC
+C21CB4:  JSR C21CA2     ;Do command 14 for FC
          JMP C21D26
 
 
@@ -4941,13 +4941,13 @@ C21CC5:  RTS
 
 ;Command 0E for FC
 
-         JSR C21CBA     ;Do command 0F for FC
+C21CC6:  JSR C21CBA     ;Do command 0F for FC
          JMP C21D26
 
 
 ;Command 10 for FC
 
-         LDA #$01
+C21CCC:  LDA #$01
          CMP $3ECA      ;Only counter if one type of monster active
                         ;specifically, this variable is the number of
                         ;unique enemy names still active in battle.
@@ -4960,7 +4960,7 @@ C21CC5:  RTS
 
 ;Command 19 for FC
 
-         LDA $3019,Y
+C21CD2:  LDA $3019,Y
          BIT $3A2E
          BEQ C21CDB
          SEC
@@ -4969,7 +4969,7 @@ C21CDB:  RTS
 
 ;Command 11 for FC
 
-         JSR C21DEE     ;if first byte of FC command is 0,
+C21CDC:  JSR C21DEE     ;if first byte of FC command is 0,
                         ;set it to current monster
          LDA $3A75      ;list of present and living enemies
          BRA C21CEF
@@ -4977,7 +4977,7 @@ C21CDB:  RTS
 
 ;<>Command 12 for FC
 
-         STZ $F8        ;tell caller not to prohibit any script commands
+C21CE4:  STZ $F8        ;tell caller not to prohibit any script commands
                         ;will be of use if this one passes.
          JSR C21DEE     ;if first byte of FC command is 0,
                         ;set it to current monster
@@ -4994,7 +4994,7 @@ C21CF9:  RTS
 
 ;Command 13 for FC
 
-         LDA $3A2E      ;First byte for FC
+C21CFA:  LDA $3A2E      ;First byte for FC
          BNE C21D06     ;branch if it indicates we're testing enemy party
          LDA $3A76      ;Number of present and living characters in party
          CMP $3A2F      ;Second byte for FC
@@ -5007,7 +5007,7 @@ C21D06:  LDA $3A2F      ;Second byte for FC
 
 ;Command 18 for FC
 
-         LDA $1EDF
+C21D0D:  LDA $1EDF
          BIT #$08       ;is Gau enlisted and not Leapt?
          BNE C21D15     ;branch if so
          SEC
@@ -5016,7 +5016,7 @@ C21D15:  RTS
 
 ;Command 1B for FC
 
-         REP #$20
+C21D16:  REP #$20
          LDA $3A2E      ;First byte for FC
          CMP $11E0      ;Battle formation
          BEQ C21D21
@@ -5026,7 +5026,7 @@ C21D21:  RTS
 
 ;Command 1C for FC
 
-         STZ $F8        ;tell caller not to prohibit any script commands
+C21D22:  STZ $F8        ;tell caller not to prohibit any script commands
          SEC            ;always return true
          RTS
 
@@ -5039,7 +5039,7 @@ C21D26:  SEP #$20
          EOR #$01
          LSR            ;would change to ROR if we wanted
                         ;A unchanged
-         RTS
+C21D2C:  RTS
 
 
 ;Sets bit #X in A (C2/1E57 and this are identical
@@ -5076,77 +5076,77 @@ C21D53:  PLP
 
 ;Code pointers for command #$FC
 
-C21D55: dw $1D2C     ;(00) (No counter)
-        dw $1C40     ;(01) (Command counter)
-        dw $1C3F     ;(02) (Spell counter)
-        dw $1C3B     ;(03) (Item counter)
-        dw $1C5E     ;(04) (Elemental counter)
-        dw $1C70     ;(05) (Counter if damaged)
-        dw $1BB7     ;(06) (HP low counter)
-        dw $1BC8     ;(07) (MP low counter)
-        dw $1BD7     ;(08) (Status counter)
-        dw $1C26     ;(09) (Status counter (counter if not present))
-        dw $1D2C     ;(0A) (No counter)
-        dw $1C86     ;(0B) (Counter depending on time monster has been alive)
-        dw $1C9C     ;(0C) (Variable counter (less than))
-        dw $1C90     ;(0D) (Variable counter (greater than or equal to))
-        dw $1CC6     ;(0E) (Level counter (less than))
-        dw $1CBA     ;(0F) (Level counter (greater than or equal to))
-        dw $1CCC     ;(10) (Counter if only one type of monster alive)
-        dw $1CDC     ;(11) (Counter if target alive)
-        dw $1CE4     ;(12) (Counter if target dead (final attack))
-        dw $1CFA     ;(13) (if first byte is 0, check for # of characters, if 1, check for
+C21D55: dw C21D2C     ;(00) (No counter)
+      : dw C21C40     ;(01) (Command counter)
+      : dw C21C3F     ;(02) (Spell counter)
+      : dw C21C3B     ;(03) (Item counter)
+      : dw C21C5E     ;(04) (Elemental counter)
+      : dw C21C70     ;(05) (Counter if damaged)
+      : dw C21BB7     ;(06) (HP low counter)
+      : dw C21BC8     ;(07) (MP low counter)
+      : dw C21BD7     ;(08) (Status counter)
+      : dw C21C26     ;(09) (Status counter (counter if not present))
+      : dw C21D2C     ;(0A) (No counter)
+      : dw C21C86     ;(0B) (Counter depending on time monster has been alive)
+      : dw C21C9C     ;(0C) (Variable counter (less than))
+      : dw C21C90     ;(0D) (Variable counter (greater than or equal to))
+      : dw C21CC6     ;(0E) (Level counter (less than))
+      : dw C21CBA     ;(0F) (Level counter (greater than or equal to))
+      : dw C21CCC     ;(10) (Counter if only one type of monster alive)
+      : dw C21CDC     ;(11) (Counter if target alive)
+      : dw C21CE4     ;(12) (Counter if target dead (final attack))
+      : dw C21CFA     ;(13) (if first byte is 0, check for # of characters, if 1, check for
                       ;       # of monsters
-        dw $1CA2     ;(14) (Variable bit check)
-        dw $1CB4     ;(15) (Variable bit check (inverse))
-        dw $1C7F     ;(16) (Counter depending on time combat has lasted)
-        dw $1D34     ;(17) (Aims like F1, Counter if valid target(s))
-        dw $1D0D     ;(18) (Counter if party hasn't gotten Gau (or Gau has leaped and is
+      : dw C21CA2     ;(14) (Variable bit check)
+      : dw C21CB4     ;(15) (Variable bit check (inverse))
+      : dw C21C7F     ;(16) (Counter depending on time combat has lasted)
+      : dw C21D34     ;(17) (Aims like F1, Counter if valid target(s))
+      : dw C21D0D     ;(18) (Counter if party hasn't gotten Gau (or Gau has leaped and is
                       ;       on Veldt)
-        dw $1CD2     ;(19) (Counter depending on monster # in formation)
-        dw $1C2C     ;(1A) (Weak vs. element counter)
-        dw $1D16     ;(1B) (Counter if specific battle formation)
-        dw $1D22     ;(1C) (Always counter (ignores Quick on other entity))
+      : dw C21CD2     ;(19) (Counter depending on monster # in formation)
+      : dw C21C2C     ;(1A) (Weak vs. element counter)
+      : dw C21D16     ;(1B) (Counter if specific battle formation)
+      : dw C21D22     ;(1C) (Always counter (ignores Quick on other entity))
 
 
 ;Code pointers for control commands (monster scripts
 
-C21D8F: dw $1B22     ;(F0)
-        dw $1B47     ;(F1)
-        dw $1B6E     ;(F2)
-        dw $1B66     ;(F3)
-        dw $1B1C     ;(F4)
-        dw $1B57     ;(F5)
-        dw $1B05     ;(F6)
-        dw $1B8E     ;(F7)
-        dw $1B72     ;(F8)
-        dw $1B76     ;(F9)
-        dw $1BA0     ;(FA)
-        dw $1B6A     ;(FB)
-        dw $1A91     ;(FC)
-        dw $1A74     ;(FD)
-        dw $1A7B     ;(FE)
-        dw $1A7B     ;(FF)
+C21D8F: dw C21B22     ;(F0)
+      : dw C21B47     ;(F1)
+      : dw C21B6E     ;(F2)
+      : dw C21B66     ;(F3)
+      : dw C21B1C     ;(F4)
+      : dw C21B57     ;(F5)
+      : dw C21B05     ;(F6)
+      : dw C21B8E     ;(F7)
+      : dw C21B72     ;(F8)
+      : dw C21B76     ;(F9)
+      : dw C21BA0     ;(FA)
+      : dw C21B6A     ;(FB)
+      : dw C21A91     ;(FC)
+      : dw C21A74     ;(FD)
+      : dw C21A7B     ;(FE)
+      : dw C21A7B     ;(FF)
 
 
 ;# of bytes for control command
 
 C21DAF: db $04   ;(F0)
-        db $02   ;(F1)
-        db $04   ;(F2)
-        db $03   ;(F3)
-        db $04   ;(F4)
-        db $04   ;(F5)
-        db $04   ;(F6)
-        db $02   ;(F7)
-        db $03   ;(F8)
-        db $04   ;(F9)
-        db $04   ;(FA)
-        db $03   ;(FB)
-        db $04   ;(FC)
-        db $01   ;(FD)
-        db $01   ;(FE)
-        db $01   ;(FF)
+      : db $02   ;(F1)
+      : db $04   ;(F2)
+      : db $03   ;(F3)
+      : db $04   ;(F4)
+      : db $04   ;(F5)
+      : db $04   ;(F6)
+      : db $02   ;(F7)
+      : db $03   ;(F8)
+      : db $04   ;(F9)
+      : db $04   ;(FA)
+      : db $03   ;(FB)
+      : db $04   ;(FC)
+      : db $01   ;(FD)
+      : db $01   ;(FE)
+      : db $01   ;(FF)
 
 
 ;Figure what type of attack it is (spell, esper, blitz, etc. , and
@@ -5157,9 +5157,9 @@ C21DBF:  PHX
          XBA
          PLA            ;Spell # is now in bottom of A and top of A
          LDX #$0A
-C21DC5:  CMP $C21DD8,X  ;pick an attack category?
+C21DC5:  CMP C21DD8,X   ;pick an attack category?
          BCC C21DD1     ;if attack is in a lower category, try the next one
-         LDA C21DE3,X  ;choose a command
+         LDA C21DE3,X   ;choose a command
          BRA C21DD6
 C21DD1:  DEX
          BPL C21DC5
@@ -5172,31 +5172,31 @@ C21DD6:  PLX
 ;Data - used to delimit which spell #s are which command
 
 C21DD8: db $36        ;(Esper)
-        db $51        ;(Skean)
-        db $55        ;(Swdtech)
-        db $5D        ;(Blitz)
-        db $65        ;(Dance Move)
-        db $7D        ;(Slot Move, or Tools??)
-        db $82        ;(Shock)
-        db $83        ;(Magitek)
-        db $8B        ;(Enemy Attack / Lore)
-        db $EE        ;(Battle, Special)
-        db $F0        ;(Desperation Attack, Interceptor)
+      : db $51        ;(Skean)
+      : db $55        ;(Swdtech)
+      : db $5D        ;(Blitz)
+      : db $65        ;(Dance Move)
+      : db $7D        ;(Slot Move, or Tools??)
+      : db $82        ;(Shock)
+      : db $83        ;(Magitek)
+      : db $8B        ;(Enemy Attack / Lore)
+      : db $EE        ;(Battle, Special)
+      : db $F0        ;(Desperation Attack, Interceptor)
 
 
 ;Data - the command #
 
 C21DE3: db $19   ;(Summon)
-        db $02   ;(Magic)
-        db $07   ;(Swdtech)
-        db $0A   ;(Blitz)
-        db $02   ;(Magic)
-        db $09   ;(Tools)
-        db $1B   ;(Shock)
-        db $1D   ;(Magitek)
-        db $0C   ;(Lore)
-        db $00   ;(Fight)
-        db $02   ;(Magic)
+      : db $02   ;(Magic)
+      : db $07   ;(Swdtech)
+      : db $0A   ;(Blitz)
+      : db $02   ;(Magic)
+      : db $09   ;(Tools)
+      : db $1B   ;(Shock)
+      : db $1D   ;(Magitek)
+      : db $0C   ;(Lore)
+      : db $00   ;(Fight)
+      : db $02   ;(Magic)
 
 
 ;If first byte of FC command is 0, set it to current monster.
@@ -5215,7 +5215,7 @@ C21DF9:  RTS
 ;  1 and 0: Add operand to variable
 ;  1 and 1: Subtract operand from variable)
 
-         LDX $B6
+C21DFA:  LDX $B6
          JSR C21E45     ;Load variable X into $EE
          LDA #$80
          TRB $B8        ;Clear bit 7 of byte 1
@@ -5239,7 +5239,7 @@ C21E13:  ADC $EE
 
 ;Code for command #$2F (used by #$F9 monster script command
 
-         LDX $B9        ;Byte 3
+C21E1A:  LDX $B9        ;Byte 3
          JSR C21E57     ;Set only bit #X in A
          LDX $B8        ;Byte 2
          JSR C21E45     ;Load variable X into $EE
@@ -5288,7 +5288,7 @@ C21E59:  ROL
 
 ;Monster command script command #$FB
 
-         LDA $B6
+C21E5E:  LDA $B6
          ASL
          TAX
          LDA $B8
@@ -5298,7 +5298,7 @@ C21E59:  ROL
 ;Operation 0 for #$FB
 ;Clears monster time counter
 
-         TDC
+C21E67:  TDC
          STA $3DC0,Y
          STA $3DC1,Y
          RTS
@@ -5306,16 +5306,16 @@ C21E59:  ROL
 
 ;Operation 9 for #$FB
 
-         LDA #$0A
+C21E6F:  LDA #$0A
          BRA C21E75
-         LDA #$08       ;Operation 2 jumps here
+C21E73:  LDA #$08       ;Operation 2 jumps here
 C21E75:  STA $3A6E      ;"End of combat" method #8, monster script command
          RTS
 
 
 ;Operation 1 for #$FB
 
-         PHP
+C21E79:  PHP
          SEC
          JSR C21F25
          REP #$20
@@ -5327,7 +5327,7 @@ C21E75:  STA $3A6E      ;"End of combat" method #8, monster script command
 
 ;Operation 5 for #$FB
 
-         PHP
+C21E87:  PHP
          SEC
          JSR C21F25
          REP #$20
@@ -5339,7 +5339,7 @@ C21E75:  STA $3A6E      ;"End of combat" method #8, monster script command
 
 ;Operation 6 for #$FB
 
-         SEC
+C21E95:  SEC
          JSR C21F25
          LDA $B9
          TSB $2F46      ;make monster(s targetable again.  can undo
@@ -5350,7 +5350,7 @@ C21E75:  STA $3A6E      ;"End of combat" method #8, monster script command
 
 ;Operation 7 for #$FB
 
-         SEC
+C21E9F:  SEC
          JSR C21F25
          LDA $B9
          TRB $2F46      ;make monster(s) untargetable
@@ -5359,7 +5359,7 @@ C21E75:  STA $3A6E      ;"End of combat" method #8, monster script command
 
 ;Operation 3 for #$FB
 
-         LDA #$08
+C21EA9:  LDA #$08
          TSB $1EDF      ;mark Gau as enlisted and not Leapt?
          LDA $3ED9,Y    ;0-15 roster position of this party member
          TAX
@@ -5384,7 +5384,7 @@ C21E75:  STA $3A6E      ;"End of combat" method #8, monster script command
 
 ;Operation 4 for #$FB
 
-         STZ $3A44
+C21EC7:  STZ $3A44
          STZ $3A45      ;zero Global battle time counter
          RTS
 
@@ -5392,7 +5392,7 @@ C21E75:  STA $3A6E      ;"End of combat" method #8, monster script command
 ;Operation 8 for #$FB
 ;Not used by any monster)
 
-         SEC            ;don't exclude Dead/Hidden/etc entities
+C21ECE:  SEC            ;don't exclude Dead/Hidden/etc entities
                         ;from targets
          JSR C21F25
          BCC C21ED9     ;branch if desired target(s) not found
@@ -5406,7 +5406,7 @@ C21ED9:  RTS
 ;Operation C for #$FB
 ;Quietly lose status)
 
-         JSR C21EEB     ;flag chosen status in attack data
+C21EDA:  JSR C21EEB     ;flag chosen status in attack data
          LDA #$04
          TSB $11A4      ;indicate Lift Status
          JMP C23167     ;Entity executes one largely unblockable hit on
@@ -5416,7 +5416,7 @@ C21ED9:  RTS
 ;Operation B for #$FB
 ;Quietly gain status)
 
-         JSR C21EEB     ;flag chosen status in attack data
+C21EE5:  JSR C21EEB     ;flag chosen status in attack data
          JMP C23167     ;Entity executes one largely unblockable hit on
                         ;self
 
@@ -5436,28 +5436,28 @@ C21EEB:  JSR C2298A     ;Load command data, and clear special effect,
 
 ;Operation D for #$FB
 
-         LDA $3EF9,Y
+C21F00:  LDA $3EF9,Y
          ORA #$20
          STA $3EF9,Y    ;Set Hide status on self
-         RTS
+C21F08:  RTS
 
 
 ;Code pointers for command #$FB
 
-C21F09: dw $1E67  ;(00)
-        dw $1E79  ;(01)
-        dw $1E73  ;(02)
-        dw $1EA9  ;(03)
-        dw $1EC7  ;(04)
-        dw $1E87  ;(05)
-        dw $1E95  ;(06)
-        dw $1E9F  ;(07)
-        dw $1ECE  ;(08)
-        dw $1E6F  ;(09)
-        dw $1F08  ;(0A) (jumps to RTS)
-        dw $1EE5  ;(0B)
-        dw $1EDA  ;(0C)
-        dw $1F00  ;(0D)
+C21F09: dw C21E67  ;(00)
+      : dw C21E79  ;(01)
+      : dw C21E73  ;(02)
+      : dw C21EA9  ;(03)
+      : dw C21EC7  ;(04)
+      : dw C21E87  ;(05)
+      : dw C21E95  ;(06)
+      : dw C21E9F  ;(07)
+      : dw C21ECE  ;(08)
+      : dw C21E6F  ;(09)
+      : dw C21F08  ;(0A) (jumps to RTS)
+      : dw C21EE5  ;(0B)
+      : dw C21EDA  ;(0C)
+      : dw C21F00  ;(0D)
 
 
 C21F25:  PHX
@@ -5538,66 +5538,66 @@ C21FA1:  STZ $B9     ;43 jumps here
  
 ;37
 
-         JSR C2202D
+C21FA5:  JSR C2202D
 C21FA8:  STZ $B8     ;38 jumps here
          BRA C21F93
  
 ;39
 
-         JSR C2202D
+C21FAC:  JSR C2202D
 C21FAF:  STZ $B8     ;3A jumps here
          BRA C21F8A
  
 ;3B
 
-         JSR C22037
+C21FB3:  JSR C22037
          BRA C21FA1
  
 ;3C
 
-         JSR C22037
+C21FB8:  JSR C22037
          BRA C21F88
  
 ;3D
 
-         JSR C22037
+C21FBD:  JSR C22037
          BRA C21FA8
  
 ;3E
 
-         JSR C22037
+C21FC2:  JSR C22037
          BRA C21FAF
  
 ;3F
 
-         JSR C2204E
+C21FC7:  JSR C2204E
 C21FCA:  BRA C21FA1
  
 ;40
 
-         JSR C2204E
+C21FCC:  JSR C2204E
          BRA C21F88
  
 ;41
 
-         JSR C2204E
+C21FD1:  JSR C2204E
          BRA C21FA8
  
 ;42
 
-         JSR C2204E
+C21FD6:  JSR C2204E
          BRA C21FAF
  
 ;4C
 
-         JSR C2202D     ;Remove self as target
+C21FDB:  JSR C2202D     ;Remove self as target
          JSR C24B53     ;random: 0 or 1 in Carry
          BCC C21F8A
          BRA C21F93
  
 ;4D
 
-         LDX $32F5,Y
+C21FE5:  LDX $32F5,Y
          BMI C21F9F     ;No targets
          LDA #$FF
          STA $32F5,Y
@@ -5609,7 +5609,7 @@ C21FCA:  BRA C21FA1
  
 ;45
 
-         STZ $B8
+C21FFB:  STZ $B8
          STZ $B9
          LDA $32E0,Y    ;get last entity to attack monster.
                         ;0-9 indicates a valid previous attacker.
@@ -5628,7 +5628,7 @@ C21FCA:  BRA C21FA1
 
 ;48) (49) (4A) (4B
 
-         TXA
+C22011:  TXA
          SEC
          SBC #$24
          TAX
@@ -5641,7 +5641,7 @@ C21FCA:  BRA C21FA1
  
 ;36
 
-         REP #$20
+C22023:  REP #$20
          LDA $3018,Y
          STA $B8
          JMP C21F93
@@ -5693,30 +5693,30 @@ C2205F:  DEX
 
 ;Code pointers for command F1 targets
 
-C22065: dw $2023     ;(36)
-        dw $1FA5     ;(37)
-        dw $1FA8     ;(38)
-        dw $1FAC     ;(39)
-        dw $1FAF     ;(3A)
-        dw $1FB3     ;(3B)
-        dw $1FB8     ;(3C)
-        dw $1FBD     ;(3D)
-        dw $1FC2     ;(3E)
-        dw $1FC7     ;(3F)
-        dw $1FCC     ;(40)
-        dw $1FD1     ;(41)
-        dw $1FD6     ;(42)
-        dw $1FA1     ;(43)
-        dw $1F88     ;(44)
-        dw $1FFB     ;(45)
-        dw $1F93     ;(46)
-        dw $1F9F     ;(47)
-        dw $2011     ;(48)
-        dw $2011     ;(49)
-        dw $2011     ;(4A)
-        dw $2011     ;(4B)
-        dw $1FDB     ;(4C)
-        dw $1FE5     ;(4D)
+C22065: dw C22023     ;(36)
+      : dw C21FA5     ;(37)
+      : dw C21FA8     ;(38)
+      : dw C21FAC     ;(39)
+      : dw C21FAF     ;(3A)
+      : dw C21FB3     ;(3B)
+      : dw C21FB8     ;(3C)
+      : dw C21FBD     ;(3D)
+      : dw C21FC2     ;(3E)
+      : dw C21FC7     ;(3F)
+      : dw C21FCC     ;(40)
+      : dw C21FD1     ;(41)
+      : dw C21FD6     ;(42)
+      : dw C21FA1     ;(43)
+      : dw C21F88     ;(44)
+      : dw C21FFB     ;(45)
+      : dw C21F93     ;(46)
+      : dw C21F9F     ;(47)
+      : dw C22011     ;(48)
+      : dw C22011     ;(49)
+      : dw C22011     ;(4A)
+      : dw C22011     ;(4B)
+      : dw C21FDB     ;(4C)
+      : dw C21FE5     ;(4D)
 
 
 ;Recalculate applicable characters' properties from their current equipment and relics
@@ -5766,7 +5766,7 @@ C220DA:  DEX
 ;Command #$2A
 ;Flee, or fail to, from running)
 
-         LDA $2F45      ;party trying to run: 0 = no, 1 = yes
+C220DE:  LDA $2F45      ;party trying to run: 0 = no, 1 = yes
          BEQ C22162     ;exit if not trying to run
          REP #$20
          LDA #$0902
@@ -5840,7 +5840,7 @@ C22162:  RTS
 ;Process one record from Special Action linked list queue.  Note that unlike with
 ; other lists, all entities here are mingled together.)
 
-C22163:  PEA $0018      ;will return to C2/0019
+C22163:  PEA.w C20019-1 ;will return to C2/0019
          PHA            ;Put on stack
          ASL
          TAY            ;adjust pointer for 16-bit fields
@@ -6081,19 +6081,44 @@ C222FB:  PEA $8040      ;Sleep, Petrify
          BCS C222E8     ;Always hits
          LDA $3EE5,Y    ;Check for image status
          BIT #$04
-         BEQ C2233F     ;Branch if not Image status on target
-         JSR C24B5A
-         CMP #$40       ;1 in 4 chance clear Image status
-         BCS C222D1     ;Always misses
-         LDA $3DFD,Y
-         ORA #$04
-         STA $3DFD,Y    ;Clear Image status
-         BRA C222D1     ;Always misses
+
+;--------------------------------------------------
+;Original Code)
+
+C2232C:  BEQ C2233F     ;Branch if not Image status on target
+C2232E:  JSR C24B5A
+C22331:  CMP #$40       ;1 in 4 chance clear Image status
+C22333:  BCS C222D1     ;Always misses
+C22335:  LDA $3DFD,Y
+C22338:  ORA #$04
+C2233A:  STA $3DFD,Y    ;Clear Image status
+C2233D:  BRA C222D1     ;Always misses
 C2233F:  LDA $3B54,Y    ;255 - Evade * 2 + 1
-         BCS C22347
+C22342:  BCS C22347
          LDA $3B55,Y    ;255 - MBlock * 2 + 1
 C22347:  PHA            ;Put on stack
-         BCC C22388
+C22348:  BCC C22388
+ 
+
+;Evade Patch Applied
+
+;C2232C:  BEQ C22345     ;Branch if not Image status on target
+;C2232E:  JSR C24B5A
+;C22331:  CMP #$40       ;1 in 4 chance clear Image status
+;C22333:  BCS C222D1     ;Always misses
+;C22335:  LDA $3DFD,Y
+;C22338:  ORA #$04
+;C2233A:  STA $3DFD,Y    ;Clear Image status
+;C2233D:  BRA C222D1     ;Always misses
+;C2233F:  LDA $3B55,Y    ;255 - MBlock * 2 + 1
+;C22342:  PHA            ;Put on stack
+;         BRA C22388
+ ;<>C22345:  LDA $3B54,Y    ;255 - Evade * 2 + 1
+;C22348:  PHA            ;Put on stack
+;         NOP
+
+;-------------------------------------------------
+
          LDA $3EE4,X
          LSR
          BCC C22352     ;Branch if attacker not blinded [Dark status]
@@ -6209,10 +6234,10 @@ C22402:  STA $2000,X
          STZ $2F53      ;clear list of visually flipped entities
          STZ $B0
          STZ $B2
-         LDX #C22602
+         LDX #C22602 ;?
          LDY #$3018
          LDA #$001B
-         MVN $C27E    	;copy C2/2602 - C2/261D to 7E/3018 - 7E/3033.
+         MVN $C27E    ;copy C2/2602 - C2/261D to 7E/3018 - 7E/3033.
                         ;unique bits identifying entities, and starting
                         ;addresses of characters' Magic menus
          LDA $11E0
@@ -6498,24 +6523,27 @@ C225FA:  REP #$20
 
 ;Data to load into $3018 and $3019 - unique bits identifying entities
 
-C22602:	dw $0001
-        dw $0002
-        dw $0004
-        dw $0008
-        dw $0100
-        dw $0200
-        dw $0400
-        dw $0800
-        dw $1000
-        dw $2000
+; Characters 1-4
+C22602: dw %0000000000000001 ;$0001
+      : dw %0000000000000010 ;$0002
+      : dw %0000000000000100 ;$0004
+      : dw %0000000000001000 ;$0008
+
+; Monsters 1-6
+      : dw %0000000100000000 ;$0100
+      : dw %0000001000000000 ;$0200
+      : dw %0000010000000000 ;$0400
+      : dw %0000100000000000 ;$0800
+      : dw %0001000000000000 ;$1000
+      : dw %0010000000000000 ;$2000
 
 
 ;Data - starting addresses of characters' Magic menus
 
-        dw $208E
-        dw $21CA
-        dw $2306
-        dw $2442
+      : dw $208E
+      : dw $21CA
+      : dw $2306
+      : dw $2442
 
 
 C2261E:  TDC            ;A = 0
@@ -6660,7 +6688,7 @@ C226D3:  PHX
          BCS C22701     ;branch if command >= 1Eh , using default function
                         ;pointer of 0
          TAX
-         LDA C2278A,X  ;get miscellaneous Command properties byte
+         LDA C2278A,X   ;get miscellaneous Command properties byte
          PHA            ;Put on stack
          AND #$E1       ;isolate Abort on Characters, Randomize Target, beat on
                         ;corpses if no valid targets left, and Exclude Attacker
@@ -6690,10 +6718,10 @@ C22707:  RTS
 
 
 ;Throw, Tools.  Item calls $271A.
-         LDX #$04
-C2270A:  CMP $C22778,X  ;is the tool or skean one that uses a spell?
+C22708:  LDX #$04
+C2270A:  CMP C22778,X   ;is the tool or skean one that uses a spell?
          BNE C22716     ;if not, branch
-         SBC $C2277D,X  ;if yes, subtract constant to determine its spell number
+         SBC C2277D,X   ;if yes, subtract constant to determine its spell number
          BRA C2274D     ;see, certain Tools and Skeans just load spells to do
                         ;their work
 
@@ -6727,7 +6755,7 @@ C22735:  LDA $D85012,X  ;equipment spell byte.
 
 
 ;Item
-         CMP #$E6       ;Carry is set if item # >= 230, Sprint Shoes.  i.e. it's
+C2273C:  CMP #$E6       ;Carry is set if item # >= 230, Sprint Shoes.  i.e. it's
                         ;Item type.  Carry won't be set for Equipment Magic.
          JSR C2271A     ;get Targeting byte, and make slight modification to
                         ;targeting if Item affects Wound/Zombie/Petrify.  also,
@@ -6748,7 +6776,7 @@ C2274D:  STA $3410      ;Magic and numerous other commands enter here
                         ;on that code keeping/making Carry clear.
 
 
-         LDA #$EE       ;select Spell EEh - Battle
+C22752:  LDA #$EE       ;select Spell EEh - Battle
 C22754:  JSR C22966     ;go load spell data
          LDA $BB        ;targeting byte as read from $CFFE01 table?
          INC
@@ -6778,63 +6806,63 @@ C22761:  LDA $11A2
 ; of their work)
 
 C22778: db $A4  ;(Bio Blaster)
-        db $A5  ;(Flash)
-        db $AB  ;(Fire Skean)
-        db $AC  ;(Water Edge)
-        db $AD  ;(Bolt Edge)
+      : db $A5  ;(Flash)
+      : db $AB  ;(Fire Skean)
+      : db $AC  ;(Water Edge)
+      : db $AD  ;(Bolt Edge)
 
 ;Data - constants we subtract from the above item #s to get the numbers
 ; of the spells they rely on)
 
 C2277D: db $27
-        db $27
-        db $5A
-        db $5A
-        db $5A
+      : db $27
+      : db $5A
+      : db $5A
+      : db $5A
 
 
 ;Code Pointers (indexed by bits 1 and 2 of data values below
 
-C22782: dw $2752  ;Fight, Morph, Revert, Steal, Capture, Runic, Sketch, Control, Leap, Mimic,
+C22782: dw C22752  ;Fight, Morph, Revert, Steal, Capture, Runic, Sketch, Control, Leap, Mimic,
                    ; Row, Def, Jump, GP Rain, Possess
-        dw $273C  ;(Item)
-        dw $274D  ;Magic, SwdTech, Blitz, Lore, Slot, Rage, Dance, X-Magic, Summon, Health,
+      : dw C2273C  ;(Item)
+      : dw C2274D  ;Magic, SwdTech, Blitz, Lore, Slot, Rage, Dance, X-Magic, Summon, Health,
                    ; Shock, MagiTek
-        dw $2708  ;(Throw, Tools)
+      : dw C22708  ;(Throw, Tools)
 
 
 ;Data - indexed by command # 0 thru 1Dh
 
 C2278A: db $20   ;(Fight)
-        db $1A   ;(Item)
-        db $04   ;(Magic)
-        db $18   ;(Morph)
-        db $18   ;(Revert)
-        db $00   ;(Steal)
-        db $20   ;(Capture)
-        db $24   ;(SwdTech)
-        db $06   ;(Throw)
-        db $06   ;(Tools)
-        db $04   ;(Blitz)
-        db $18   ;(Runic)
-        db $04   ;(Lore)
-        db $80   ;(Sketch)
-        db $80   ;(Control)
-        db $04   ;(Slot)
-        db $04   ;(Rage)
-        db $80   ;(Leap)
-        db $18   ;(Mimic)
-        db $04   ;(Dance)
-        db $18   ;(Row)
-        db $18   ;(Def)
-        db $21   ;(Jump)
-        db $04   ;(X-Magic)
-        db $01   ;(GP Rain)
-        db $04   ;(Summon)
-        db $04   ;(Health)
-        db $04   ;(Shock)
-        db $81   ;(Possess)
-        db $04   ;(MagiTek)
+      : db $1A   ;(Item)
+      : db $04   ;(Magic)
+      : db $18   ;(Morph)
+      : db $18   ;(Revert)
+      : db $00   ;(Steal)
+      : db $20   ;(Capture)
+      : db $24   ;(SwdTech)
+      : db $06   ;(Throw)
+      : db $06   ;(Tools)
+      : db $04   ;(Blitz)
+      : db $18   ;(Runic)
+      : db $04   ;(Lore)
+      : db $80   ;(Sketch)
+      : db $80   ;(Control)
+      : db $04   ;(Slot)
+      : db $04   ;(Rage)
+      : db $80   ;(Leap)
+      : db $18   ;(Mimic)
+      : db $04   ;(Dance)
+      : db $18   ;(Row)
+      : db $18   ;(Def)
+      : db $21   ;(Jump)
+      : db $04   ;(X-Magic)
+      : db $01   ;(GP Rain)
+      : db $04   ;(Summon)
+      : db $04   ;(Health)
+      : db $04   ;(Shock)
+      : db $81   ;(Possess)
+      : db $04   ;(MagiTek)
 
 
 ;Copy character's out of battle stats into their battle stats, and mark out of battle
@@ -6938,10 +6966,10 @@ C2283C:  PHX
 
 ;Boost A by some fraction, if any
 
-         TDC           ;enter here for A = 0 + $EE
-         LSR           ;enter here for A = (A * 1/8) + $EE
-         LSR           ;enter here for A = (A * 1/4) + $EE
-         LSR           ;enter here for A = (A * 1/2) + $EE
+C22850:  TDC           ;enter here for A = 0 + $EE
+C22851:  LSR           ;enter here for A = (A * 1/8) + $EE
+C22852:  LSR           ;enter here for A = (A * 1/4) + $EE
+C22853:  LSR           ;enter here for A = (A * 1/2) + $EE
          CLC
          ADC $EE
          PLX
@@ -6950,10 +6978,10 @@ C2283C:  PHX
 
 ;Code Pointers
 
-C22859: dw $2850  ;(A = A) (technically, A = $EE, but it's the same deal.)
-        dw $2852  ;(A = A + (A * 1/4) )
-        dw $2853  ;(A = A + (A * 1/2) )
-        dw $2851  ;(A = A + (A * 1/8) )
+C22859: dw C22850  ;(A = A) (technically, A = $EE, but it's the same deal.)
+      : dw C22852  ;(A = A + (A * 1/4) )
+      : dw C22853  ;(A = A + (A * 1/2) )
+      : dw C22851  ;(A = A + (A * 1/8) )
 
 
 ;A = 255 - (A * 2 + 1
@@ -7138,7 +7166,7 @@ C22966:  PHX
          TAX
          LDY #$11A0
          LDA #$000D
-         MVN $C47E    	;copy 14 spell bytes into RAM
+         MVN $C47E    ;copy 14 spell bytes into RAM
          SEP #$20
          ASL $11A9      ;multiply special effect by 2
          BCC C22987
@@ -7360,26 +7388,26 @@ C22B16:  PLA
 
 ;Code pointers
 
-C22B1A: dw $2B2A     ;(Noise Blaster)
-        dw $2B2F     ;(Bio Blaster) (do nothing)
-        dw $2B2F     ;(Flash) (do nothing)
-        dw $2B30     ;(Chainsaw)
-        dw $2B53     ;(Debilitator)
-        dw $2B4D     ;(Drill)
-        dw $2B57     ;(Air Anchor)
-        dw $2B5D     ;(Autocrossbow)
+C22B1A: dw C22B2A     ;(Noise Blaster)
+      : dw C22B2F     ;(Bio Blaster) (do nothing)
+      : dw C22B2F     ;(Flash) (do nothing)
+      : dw C22B30     ;(Chainsaw)
+      : dw C22B53     ;(Debilitator)
+      : dw C22B4D     ;(Drill)
+      : dw C22B57     ;(Air Anchor)
+      : dw C22B5D     ;(Autocrossbow)
 
 
 ;Noiseblaster effect
 
-         LDA #$20
+C22B2A:  LDA #$20
          STA $11AB      ;Set Muddled in attack data
-         RTS
+C22B2F:  RTS
 
 
 ;Chainsaw effect
 
-         JSR C24B5A     ;random #: 0 to 255
+C22B30:  JSR C24B5A     ;random #: 0 to 255
          AND #$03
          BNE C22B4D     ;75% chance branch
          LDA #$08
@@ -7398,20 +7426,20 @@ C22B4D:  LDA #$20
 
 ;Debilitator Effect
 
-         LDA #$AC
+C22B53:  LDA #$AC
          BRA C22B59     ;Set Debilitator effect
 
 
 ;Air Anchor effect
 
-         LDA #$AE       ;Add Air Anchor effect
+C22B57:  LDA #$AE       ;Add Air Anchor effect
 C22B59:  STA $11A9
          RTS
 
 
 ;Autocrossbow effect
 
-         LDA #$40
+C22B5D:  LDA #$40
          TSB $11A2      ;Set no split damage
          RTS
 
@@ -7960,17 +7988,17 @@ C22E7C:  PHX
 
 ;Pointers to functions that do stuff based on battle formation
 
-C22E93: dw $2E9B     ;(Normal attack)
-        dw $2ECE     ;(Back attack)
-        dw $2EC1     ;(Pincer attack)
-        dw $2E9B     ;(Side attack)
+C22E93: dw C22E9B     ;(Normal attack)
+      : dw C22ECE     ;(Back attack)
+      : dw C22EC1     ;(Pincer attack)
+      : dw C22E9B     ;(Side attack)
 
 
 ;Determines if a battle is a preemptive attack
 ;Preemptive attack chance = 1 in 8 for normal attacks, 7 in 32 for side attacks)
 ;Gale Hairpin doubles chance)
 
-         LDA $B1
+C22E9B:  LDA $B1
          BMI C22EC0     ;Exit function if bit 7 of $B1 is set.  that is,
                         ;if at least one active monster in the formation
                         ;has the "Attack First" property.
@@ -7998,7 +8026,7 @@ C22EC0:  RTS
 
 ;Sets all characters to front row for pincer attacks
 
-         LDX #$06
+C22EC1:  LDX #$06
 C22EC3:  LDA #$DF
          JSR C20A43     ;Sets character X to front row, by clearing
                         ;Bit 5 of $3AA1,X
@@ -8010,7 +8038,7 @@ C22EC3:  LDA #$DF
 
 ;Switches characters' row placements for back attacks
 
-         LDX #$06
+C22ECE:  LDX #$06
 C22ED0:  LDA $3AA1,X
          EOR #$20
          STA $3AA1,X    ;Toggle Row
@@ -8616,7 +8644,7 @@ C23288:  PLX
          DEC $3A70      ;# more attacks set by Offering, Quadra Slam,
                         ;Dragon Horn, etc
          BMI C23291     ;if it's negative, there are no more, so exit
-         PEA $317A      ;if there are more, repeat this $317B function
+         PEA.w C2317B-1 ;if there are more, repeat this $317B function
 C23291:  RTS
 
 
@@ -9191,7 +9219,7 @@ C2362F:  PHA            ;Put on stack
                         ;arbitrary gibberish from three of the callers:
                         ;function C2/0C2D, function C2/384A when called
                         ;via C2/387E, and function C2/384A when called via
-                        ;C23E7D.)
+;                                     C23E7D.)
          STA $32E0,Y
 C2363B:  PLP
          PLA
@@ -9221,7 +9249,7 @@ C23649:  LDA $3A89
          LDA #$10
          TRB $B2        ;this bit distinguishes traditional "addition magic"
                         ;spellcasts from Tempest's Wind Slash in a few ways in
-                        ;C237EB.)
+;                                     C237EB.)
                         ;one is that it'll cause the targeting byte to be set to
                         ;only "Cursor start on enemy" for the followup spell.
                         ;maybe the goal is to prevent the spell from targeting
@@ -9261,29 +9289,29 @@ C23666:  LDA #$01
 
 ;Magic, non-Summoning non-Joker Doom Slot, successful Dance, Lore, Magitek,
 ; enemy non-Specials, and many others)
-         LDA $B6        ;load attack ID
+C23687:  LDA $B6        ;load attack ID
          RTS
 
 
 ;Item
-         LDA $3A7D
+C2368A:  LDA $3A7D
          RTS
 
 
 ;Esper Summon
-         SEC
+C2368E:  SEC
          LDA $B6
          SBC #$36       ;convert attack ID to 0-26 Esper ID
          RTS
 
 
 ;enemy GP Rain, Health, Shock
-         LDA $B5        ;load command ID
+C23694:  LDA $B5        ;load command ID
          RTS
 
 
 ;Enemy Special
-         LDA #$11
+C23697:  LDA #$11
          STA $3A28      ;temporary byte 1 for ($76) animation buffer
          LDA $33A8,Y    ;get monster ID, bottom byte
          STA $3A29      ;temporary byte 2 for ($76) animation buffer
@@ -9292,7 +9320,7 @@ C23666:  LDA #$01
 
 
 ;Joker Dooms
-         LDA #$02
+C236A6:  LDA #$02
          TSB $3A46      ;set flag to let attack target normally untargetable
                         ;entities: Jumpers [err, scratch that, since they'd
                         ;have to be un-Hidden, which i don't think is
@@ -9308,7 +9336,7 @@ C23666:  LDA #$01
 
 
 ;Blitz
-         LDA #$00
+C236BB:  LDA #$00
          STA $3A29      ;temporary byte 2 for ($76) animation buffer
          LDA $3A7D
          RTS
@@ -9316,16 +9344,16 @@ C23666:  LDA #$01
 
 ;Pointers to code
 
-C236C4: dw $3687   ;Magic, non-Summoning non-Joker Doom Slot, successful Dance, Lore,
+C236C4: dw C23687   ;Magic, non-Summoning non-Joker Doom Slot, successful Dance, Lore,
                     ; Magitek, enemy non-Specials, and many others
-        dw $368A   ;(Item [which can include a Tool or thrown weapon or skean])
-        dw $368E   ;(Esper Summon)
-        dw $3665   ;(does nothing)
-        dw $3687   ;(SwdTech)
-        dw $3694   ;(enemy GP Rain, Health, Shock)
-        dw $3697   ;(Enemy Special)
-        dw $36A6   ;(Slot - Joker Dooms)
-        dw $36BB   ;(Blitz)
+      : dw C2368A   ;(Item [which can include a Tool or thrown weapon or skean])
+      : dw C2368E   ;(Esper Summon)
+      : dw C23665   ;(does nothing)
+      : dw C23687   ;(SwdTech)
+      : dw C23694   ;(enemy GP Rain, Health, Shock)
+      : dw C23697   ;(Enemy Special)
+      : dw C236A6   ;(Slot - Joker Dooms)
+      : dw C236BB   ;(Blitz)
 
 
 ;Learn lore if casted
@@ -9395,7 +9423,7 @@ C2372F:  PHX
          PHY
          PHP
          REP #$31       ;set 16-bit A, X and Y.  clear Carry
-         LDA C2544A,X  ;address of controlling character's menu
+         LDA C2544A,X   ;address of controlling character's menu
          ADC #$0030
          STA $002181    ;Offset for WRAM to access
          TYX
@@ -9658,7 +9686,7 @@ C2388C:  RTS
 ;Kill effect
 
 ; Slice/Scimitar special effect starts here
-         SEC
+C2388D:  SEC
          LDA #$EE
 C23890:  XBA            ;Call from Kill with "X" effect enters here,
                         ;with A = #$7E
@@ -9734,7 +9762,7 @@ C238EC:  JSR C235AD     ;Write data in $B4 - $B7 to current slot in ($76
 ;Special Effect 4
 ;x2 Damage vs. Humans
 
-         LDA $3C95,Y
+C238F2:  LDA $3C95,Y
          BIT #$10
          BEQ C238FD     ;Exit if target not human
          INC $BC
@@ -9744,7 +9772,7 @@ C238FD:  RTS
 
 ;Sniper/Hawk Eye effect
 
-         JSR C24B53     ;random: 0 or 1 in Carry flag
+C238FE:  JSR C24B53     ;random: 0 or 1 in Carry flag
          BCC C238FD     ;50% chance exit
          INC $BC        ;Add 1 to damage incrementor
          LDA $3EF9,Y
@@ -9766,7 +9794,7 @@ C238FD:  RTS
 
 ;Stone
 
-         LDA $05,S
+C23922:  LDA $05,S
          TAX
          LDA $3B18,X    ;Attacker's level
          CMP $3B18,Y    ;Target's Level
@@ -9779,7 +9807,7 @@ C23933:  RTS
 
 ;Palidor
 
-         LDA #$01
+C23934:  LDA #$01
          JSR C2464C     ;sets bit 0 in $3204,Y .  indicates entity is
                         ;target/passenger of a Palidor summon this turn.
          LDA $32CC,Y    ;get entry point to entity's conventional linked
@@ -9814,14 +9842,14 @@ C2394E:  TDC
 
 ;Special effect $39 - Engulf
 
-         LDA $3018,Y
+C2395E:  LDA $3018,Y
          TSB $3A8A      ;Set character as engulfed
          BRA C2396C     ;Branch to remove from combat code
 
 
 ;Bababreath from 3DCD
 
-         LDA $3018,Y
+C23966:  LDA $3018,Y
          TSB $3A88      ;flag to remove target from party at end of battle
 C2396C:  REP #$20       ;Special effect $27 & $38 & $4B jump here
                         ;Escape, Sneeze, Smoke Bomb
@@ -9833,7 +9861,7 @@ C2396C:  REP #$20       ;Special effect $27 & $38 & $4B jump here
 
 ;Dischord
 
-         TYX
+C23978:  TYX
          INC $3B18,X    ;Level
          LSR $3B18,X    ;Half level rounded up
          RTS
@@ -9841,7 +9869,7 @@ C2396C:  REP #$20       ;Special effect $27 & $38 & $4B jump here
 
 ;R. Polarity
 
-         LDA $3AA1,Y    ;Target's Row
+C23980:  LDA $3AA1,Y    ;Target's Row
          EOR #$20
          STA $3AA1,Y    ;Switch
          RTS
@@ -9849,7 +9877,7 @@ C2396C:  REP #$20       ;Special effect $27 & $38 & $4B jump here
 
 ;Wall Change
 
-         TDC
+C23989:  TDC
          LDA #$FF
          JSR C2522A     ;Pick a random bit
          STA $3BE0,Y    ;Set your weakness to A
@@ -9862,7 +9890,7 @@ C2396C:  REP #$20       ;Special effect $27 & $38 & $4B jump here
 
 ;Steal function
 
-         LDA $05,S      ;Attacker
+C2399E:  LDA $05,S      ;Attacker
          TAX
          LDA #$01
          STA $3401      ;=1) (Sets message to "Doesn't have anything!"
@@ -9955,7 +9983,7 @@ C23A31:  STA $3D98,X    ;update enemy's gold
 
 ;Metamorph
 
-         CPY #$08       ;Checks if target is monster
+C23A3C:  CPY #$08       ;Checks if target is monster
          BCC C23A8A     ;branch if not
          LDA $3C94,Y    ;Metamorph info: Morph chance in bits 5-7,
                         ;and Morph pack in bits 0-4
@@ -9986,7 +10014,7 @@ C23A31:  STA $3D98,X    ;update enemy's gold
          LSR            ;isolate 0-7 Metamorph Chance index
          TAX            ;copy it to X
          JSR C24B5A     ;Random number 0 to 255
-         CMP $C23DC5,X  ;compare to actual Metamorph Chance
+         CMP C23DC5,X   ;compare to actual Metamorph Chance
          BCS C23A8A     ;if greater than or equal, branch and fail to
                         ;Metamorph
          LDA $05,S
@@ -10005,7 +10033,7 @@ C23A8A:  JMP C23B1B     ;flag Miss message
 ;Special Efect $56
 ;Debilitator
 
-         TDC
+C23A8D:  TDC
          LDA $3BE0,Y    ;Elements weak against
          ORA $3EC8      ;Elements nullified by ForceField
          EOR #$FF       ;Get elements in neither category
@@ -10037,7 +10065,7 @@ C23A8A:  JMP C23B1B     ;flag Miss message
 ;Special effect $53
 ;Control
 
-         CPY #$08
+C23AC5:  CPY #$08
          BCC C23B16     ;Miss with text if target is character
          LDA $3C80,Y
          BMI C23B16     ;Miss with text if target has Can't Control bit set
@@ -10090,7 +10118,7 @@ C23B1B:  REP #$20       ;Set 16-bit Accumulator
 
 ;Sketch
 
-         CPY #$08
+C23B29:  CPY #$08
          BCC C23B1B     ;Miss if aimed at party
          LDA $3C80,Y
          BIT #$20
@@ -10130,14 +10158,14 @@ C23B64:  LDA #$1F
 
 ;Special Effect $25 (Quake
 
-         LDA $3EF9,Y
+C23B6B:  LDA $3EF9,Y
          BMI C23B1B     ;If Float status set, miss
          RTS
 
 
 ;Leap
 
-         LDA $2F49
+C23B71:  LDA $2F49
          BIT #$08       ;extra enemy formation data: is "Can't Leap" set?
          BNE C23B90     ;if so, miss with text
          LDA $3A76      ;Number of present and living characters in party
@@ -10161,7 +10189,7 @@ C23B90:  LDA #$05
 
 ;Special Effect $50 (Possess
 
-         LDA $05,S
+C23B98:  LDA $05,S
          TAX
          LDA $3018,X
          TSB $2F4C      ;mark Possessor to be removed from battlefield
@@ -10181,7 +10209,7 @@ C23B90:  LDA #$05
 
 ;Mind Blast
 
-         REP #$20       ;Set 16-bit Accumulator
+C23BB0:  REP #$20       ;Set 16-bit Accumulator
          JSR C244FF     ;Clear Status to Set and Status to Clear bytes
          LDA $3018,Y    ;an original target, might also be in custom list
          LDX #$06
@@ -10204,7 +10232,7 @@ C23BC6:  DEX
 ;Evil Toot
 ;Sets a random status from attack data)
 
-         REP #$20       ;Set 16-bit Accumulator
+C23BCB:  REP #$20       ;Set 16-bit Accumulator
          JSR C244FF     ;Clear Status to Set and Status to Clear bytes
 C23BD0:  LDA $11AA
          JSR C2520E     ;X = Number of statuses set by attack in bytes 1 & 2
@@ -10236,7 +10264,7 @@ C23BFD:  ORA $3DE8,Y    ;Set status picked bytes 3 or 4
 
 ;Rippler Effect
 
-         LDA $05,S
+C23C04:  LDA $05,S
          TAX
          REP #$20       ;Set 16-bit Accumulator
          LDA $3EE4,X    ;status bytes 1-2, caster
@@ -10281,7 +10309,7 @@ C23BFD:  ORA $3DE8,Y    ;Set status picked bytes 3 or 4
 
 ;Exploder effect from 3DCD
 
-         LDA $05,S
+C23C4C:  LDA $05,S
          TAX            ;X = attacker
          STX $EE
          CPY $EE        ;is this target the attacker?
@@ -10290,14 +10318,14 @@ C23BFD:  ORA $3DE8,Y    ;Set status picked bytes 3 or 4
          TRB $A4        ;if so, and it's a character, clear it from hit targets.
                         ;seemingly undoing the addition to targets by the
                         ;earlier special effect function.  but the problem is,
-                        ;C23467 sets the bit in $A4 again shortly after this
+;                                     C23467 sets the bit in $A4 again shortly after this
                         ;function returns.
 C23C5A:  RTS
 
 
 ;Scan effect
 
-         LDA $3C80,Y
+C23C5B:  LDA $3C80,Y
          BIT #$10
          BNE C23C68     ;Branch if target has Can't Scan
          TYX
@@ -10313,7 +10341,7 @@ C23C68:  LDA #$2C
 
 ;Suplex code from $3DCD
 
-         LDA $3C80,Y
+C23C6E:  LDA $3C80,Y
          BIT #$04       ;Is Can't Suplex set in Misc/Special enemy byte?
          BEQ C23C5A     ;If not, exit function
 C23C75:  JMP C23B1B     ;Makes miss
@@ -10321,7 +10349,7 @@ C23C75:  JMP C23B1B     ;Makes miss
 
 ;Special Effect $57 - Air Anchor
 
-         LDA $3AA1,Y
+C23C78:  LDA $3AA1,Y
          BIT #$04
          BNE C23C75     ;Miss if instant death protected
          LDA #$13
@@ -10329,18 +10357,18 @@ C23C75:  JMP C23B1B     ;Makes miss
          LDA $3205,Y
          AND #$FB
          STA $3205,Y    ;Set Air Anchor effect
-         STZ $341A      ;Special Effect $23 -- X-Zone, Odin, etc -- jumps here
+C23C8C:  STZ $341A      ;Special Effect $23 -- X-Zone, Odin, etc -- jumps here
          RTS
 
 
 ;L? Pearl from 3DCD
 
-         RTS
+C23C90:  RTS
 
 
 ;Charm
 
-         LDA $05,S
+C23C91:  LDA $05,S
          TAX
          LDA $3394,X
          BPL C23C75     ;Miss if attacker already charmed a target
@@ -10353,7 +10381,7 @@ C23C75:  JMP C23B1B     ;Makes miss
 
 ;Tapir
 
-         LDA $3EE5,Y
+C23CA2:  LDA $3EE5,Y
          BPL C23C75     ;Miss if target is not asleep
          REP #$20       ;Set 16-bit Accumulator
          LDA $3C1C,Y
@@ -10366,7 +10394,7 @@ C23CAF:  REP #$20       ;Pep Up and Elixir/Megalixir branch here
 
 ;Pep Up
 
-         LDA $05,S
+C23CB8:  LDA $05,S
          TAX
          JSR C2384A     ;Mark Hide and Death statuses to be set on attacker
                         ;in X, and mark entity X as last attacker of entity Y
@@ -10381,7 +10409,7 @@ C23CAF:  REP #$20       ;Pep Up and Elixir/Megalixir branch here
 
 ;Special Effect $2E - Seize
 
-         LDA $05,S
+C23CCE:  LDA $05,S
          TAX
          LDA $3358,X    ;whom attacker is Seizing
          BPL C23C75     ;if already Seizing someone, jump to $3B1B - Miss
@@ -10406,7 +10434,7 @@ C23CAF:  REP #$20       ;Pep Up and Elixir/Megalixir branch here
 
 ;Discard
 
-         LDA $05,S
+C23CFD:  LDA $05,S
          TAX
          LDA $3DAC,X
          AND #$7F
@@ -10423,14 +10451,14 @@ C23CAF:  REP #$20       ;Pep Up and Elixir/Megalixir branch here
 ;Special effect $4C - Elixir and Megalixir.  In Item data, this appears as
 ; Special effect $04.)
 
-         LDA #$80
+C23D17:  LDA #$80
          JSR C2464C     ;Sets bit 7 in $3204,Y
          BRA C23CAF     ;Set MP to Max MP
 
 
 ;Overcast
 
-         LDA $3E4D,Y
+C23D1E:  LDA $3E4D,Y
          ORA #$02
          STA $3E4D,Y    ;Turn on Overcast bit, which will be checked by
                         ;function C2/450D to give a dying target Zombie
@@ -10440,7 +10468,7 @@ C23CAF:  REP #$20       ;Pep Up and Elixir/Megalixir branch here
 
 ;Zinger
 
-         LDA $05,S
+C23D27:  LDA $05,S
          TAX
          STX $33F8      ;save attacker as the Zingerer
          STY $33F9      ;save target as who's being Zingered
@@ -10451,7 +10479,7 @@ C23CAF:  REP #$20       ;Pep Up and Elixir/Megalixir branch here
 
 ;Love Token
 
-         LDA $05,S
+C23D37:  LDA $05,S
          TAX
          TYA
          STA $336C,X    ;Attacker data: save which target takes damage
@@ -10464,11 +10492,11 @@ C23CAF:  REP #$20       ;Pep Up and Elixir/Megalixir branch here
 ;Kill with 'X' effect
 ;Auto hit undead, Restores undead)
 
-         CLC
+C23D43:  CLC
          LDA #$7E       ;tells function it's an x-kill weapon
          JSR C23890     ;call x-kill/dice-up function, decide whether to
                         ;activate instant kill
-         LDA $3C95,Y    ;Doom effect jumps here
+C23D49:  LDA $3C95,Y    ;Doom effect jumps here
          BPL C23D62     ;Exit function if not undead
          CPY #$08
          BCS C23D63     ;Branch if not character
@@ -10497,7 +10525,7 @@ C23D63:  TDC            ;clear 16-bit A
 
 ;Phantasm
 
-         LDA $3E4D,Y
+C23D7C:  LDA $3E4D,Y
          ORA #$40
          STA $3E4D,Y    ;give Seizure-like quasi status to target
                         ;unnamed, but some call it HP Leak
@@ -10508,7 +10536,7 @@ C23D63:  TDC            ;clear 16-bit A
 ;Only a Hit Rate / 256 chance it will actually try to inflict
 ; statuses on the target)
 
-         JSR C24B5A     ;random: 0 to 255
+C23D85:  JSR C24B5A     ;random: 0 to 255
          CMP $11A8
          BCC C23DA7     ;If less than hit rate then exit
          REP #$20       ;Set 16-bit Accumulator
@@ -10527,7 +10555,7 @@ C23DA7:  RTS
 
 ;Targeting
 
-         LDA $05,S
+C23DA8:  LDA $05,S
          TAX
          TYA
          STA $32F5,X    ;Stores target
@@ -10536,7 +10564,7 @@ C23DA7:  RTS
 
 ;Fallen One
 
-         REP #$20       ;Set 16-bit Accumulator
+C23DB0:  REP #$20       ;Set 16-bit Accumulator
          TDC            ;Clear Accumulator
          INC
          STA $3BF4,Y    ;Store 1 in HP
@@ -10545,7 +10573,7 @@ C23DA7:  RTS
 
 ;Special effect $4A - Super Ball
 
-         JSR C24B5A     ;Random Number 0 to 255
+C23DB8:  JSR C24B5A     ;Random Number 0 to 255
          AND #$07       ;Random Number 0 to 7
          INC            ;1 to 8
          STA $11B1      ;Set damage to 256 to 2048 in steps of 256
@@ -10556,105 +10584,105 @@ C23DA7:  RTS
 ;Metamorph Chance
 
 C23DC5: db $FF
-        db $C0
-        db $80
-        db $40
-        db $20
-        db $10
-        db $08
-        db $00
+      : db $C0
+      : db $80
+      : db $40
+      : db $20
+      : db $10
+      : db $08
+      : db $00
 
 
 ;Table for special effects code pointers 1 (once-per-target
 
-C23DCD: dw $388C
-        dw $388C
-        dw $388C
-        dw $3D43 ;($03)
-        dw $38F2 ;($04)
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $38FE ;($08)
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $388D ;($0D)
-        dw $388C
-        dw $388C
-        dw $3C5B ;($10)
-        dw $388C
-        dw $3A3C ;($12)
-        dw $3934 ;($13)
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $3CA2 ;($17)
-        dw $388C
-        dw $3C4C ;($19)
-        dw $388C
-        dw $388C
-        dw $3C90 ;($1C)
-        dw $388C
-        dw $388C
-        dw $3978 ;($1F)
-        dw $3CB8 ;($20)
-        dw $3C04 ;($21)
-        dw $3922 ;($22)
-        dw $3C8C ;($23)
-        dw $388C
-        dw $3B6B ;($25)
-        dw $3989 ;($26)
-        dw $396C ;($27)
-        dw $3BB0 ;($28)
-        dw $388C
-        dw $388C
-        dw $3980 ;($2B)
-        dw $388C
-        dw $3D37 ;($2D)
-        dw $3CCE ;($2E)
-        dw $3DA8 ;($2F)
-        dw $3C6E ;($30)
-        dw $388C
-        dw $388C
-        dw $3966 ;($33)
-        dw $3C91 ;($34)
-        dw $3D49 ;($35)
-        dw $388C
-        dw $3D1E ;($37)
-        dw $396C ;($38)
-        dw $395E ;($39)
-        dw $3D27 ;($3A)
-        dw $3BCB ;($3B)
-        dw $388C
-        dw $388C
-        dw $3D7C ;($3E)
-        dw $3D85 ;($3F)
-        dw $3DB0 ;($40)
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $3CFD ;($44)
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $3DB8 ;($4A)
-        dw $396C ;($4B)
-        dw $3D17 ;($4C)
-        dw $388C
-        dw $388C
-        dw $388C
-        dw $3B98 ;($50)
-        dw $388C
-        dw $399E ;($52)
-        dw $3AC5 ;($53)
-        dw $3B71 ;($54)
-        dw $3B29 ;($55)
-        dw $3A8D ;($56)
-        dw $3C78 ;($57)
+C23DCD: dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C23D43 ;($03)
+      : dw C238F2 ;($04)
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C238FE ;($08)
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C2388D ;($0D)
+      : dw C2388C
+      : dw C2388C
+      : dw C23C5B ;($10)
+      : dw C2388C
+      : dw C23A3C ;($12)
+      : dw C23934 ;($13)
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C23CA2 ;($17)
+      : dw C2388C
+      : dw C23C4C ;($19)
+      : dw C2388C
+      : dw C2388C
+      : dw C23C90 ;($1C)
+      : dw C2388C
+      : dw C2388C
+      : dw C23978 ;($1F)
+      : dw C23CB8 ;($20)
+      : dw C23C04 ;($21)
+      : dw C23922 ;($22)
+      : dw C23C8C ;($23)
+      : dw C2388C
+      : dw C23B6B ;($25)
+      : dw C23989 ;($26)
+      : dw C2396C ;($27)
+      : dw C23BB0 ;($28)
+      : dw C2388C
+      : dw C2388C
+      : dw C23980 ;($2B)
+      : dw C2388C
+      : dw C23D37 ;($2D)
+      : dw C23CCE ;($2E)
+      : dw C23DA8 ;($2F)
+      : dw C23C6E ;($30)
+      : dw C2388C
+      : dw C2388C
+      : dw C23966 ;($33)
+      : dw C23C91 ;($34)
+      : dw C23D49 ;($35)
+      : dw C2388C
+      : dw C23D1E ;($37)
+      : dw C2396C ;($38)
+      : dw C2395E ;($39)
+      : dw C23D27 ;($3A)
+      : dw C23BCB ;($3B)
+      : dw C2388C
+      : dw C2388C
+      : dw C23D7C ;($3E)
+      : dw C23D85 ;($3F)
+      : dw C23DB0 ;($40)
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C23CFD ;($44)
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C23DB8 ;($4A)
+      : dw C2396C ;($4B)
+      : dw C23D17 ;($4C)
+      : dw C2388C
+      : dw C2388C
+      : dw C2388C
+      : dw C23B98 ;($50)
+      : dw C2388C
+      : dw C2399E ;($52)
+      : dw C23AC5 ;($53)
+      : dw C23B71 ;($54)
+      : dw C23B29 ;($55)
+      : dw C23A8D ;($56)
+      : dw C23C78 ;($57)
 
 
 ;Calls once-per-strike special effect code
@@ -10667,12 +10695,12 @@ C23E7D:  PHX
          JSR (C242E1,X)
          PLP
          PLX
-         RTS
+C23E8A:  RTS
 
 
 ;Random Steal Effect (Special Effect 1 - ThiefKnife
 
-         JSR C24B53     ;50% chance to steal
+C23E8B:  JSR C24B53     ;50% chance to steal
          BCS C23E9F
          LDA #$A4       ;Add steal effect to attack
          STA $11A9
@@ -10686,7 +10714,7 @@ C23E9F:  RTS
 
 ;Step Mine - sets damage to Steps / Spell Power, capped at 65535
 
-         STZ $3414      ;Set to ignore damage modifiers
+C23EA0:  STZ $3414      ;Set to ignore damage modifiers
          REP #$20       ;Set 16-bit Accumulator
          TDC
          DEC
@@ -10711,7 +10739,7 @@ C23EC9:  RTS
 
 ;Ogre Nix - Weapon randomly breaks.  Also uses MP for criticals.
 
-         LDA $B1
+C23ECA:  LDA $B1
          LSR
          BCS C23F22     ;if not a conventional attack [i.e. in this context: it's
                         ;a counterattack], Jump to code for attack with MP
@@ -10794,13 +10822,13 @@ C23F4F:  RTS
 
 ;Special Effect $0F - Use MP for criticals.  No weapons use this, afaik.
 
-         LDA #$1C
+C23F50:  LDA #$1C
          BRA C23F24
  
 
 ;<>Pearl Wind
 
-         LDA #$60
+C23F54:  LDA #$60
          TSB $11A2      ;Sets no split damage, and ignore defense
          STZ $3414      ;Set to not modify damage
          REP #$20
@@ -10811,7 +10839,7 @@ C23F4F:  RTS
 
 ;Golem
 
-         REP #$20
+C23F65:  REP #$20
          LDA $3BF4,Y    ;Current HP
          STA $3A36      ;HP that Golem will absorb
          RTS
@@ -10819,9 +10847,9 @@ C23F4F:  RTS
 
 ;Special Effect 6 - Soul Sabre
 
-         LDA #$80
+C23F6E:  LDA #$80
          TSB $11A3      ;Sets attack to Concern MP
-         LDA #$08       ;Special Effect 5 - Drainer jumps here
+C23F73:  LDA #$08       ;Special Effect 5 - Drainer jumps here
          TSB $11A2      ;Sets attack to heal undead
          LDA #$02
          TSB $11A4      ;Sets attack to redirection
@@ -10830,7 +10858,7 @@ C23F4F:  RTS
 
 ;Recover HP - Heal Rod
 
-         LDA #$20
+C23F7E:  LDA #$20
          TSB $11A2      ;Sets attack to ignore defense
          LDA #$01
          TSB $11A4      ;Sets attack to heal
@@ -10839,7 +10867,7 @@ C23F4F:  RTS
 
 ;Valiant Knife
 
-         LDA #$20
+C23F89:  LDA #$20
          TSB $11A2      ;Sets attack to ignore defense
          REP #$20
          SEC
@@ -10853,7 +10881,7 @@ C23F4F:  RTS
 
 ;Wind Slash - Tempest
 
-         JSR C24B5A     ;Random Number Function: 0 to 255
+C23F9F:  JSR C24B5A     ;Random Number Function: 0 to 255
          CMP #$80
          BCS C23FB6     ;50% chance exit function
          STZ $11A6      ;Clear Battle Power
@@ -10863,7 +10891,7 @@ C23F4F:  RTS
 
 ;Magicite
 
-         JSR C237DC     ;Picks random Esper, not Odin or Raiden
+C23FAD:  JSR C237DC     ;Picks random Esper, not Odin or Raiden
 C23FB0:  STA $3400      ;Save the spell number
          INC $3A70      ;Increment the number of attacks remaining
 C23FB6:  RTS
@@ -10872,7 +10900,7 @@ C23FB6:  RTS
 ;Special effect $51
 ;GP Rain
 
-         LDA $3B18,Y    ;Attacker's Level
+C23FB7:  LDA $3B18,Y    ;Attacker's Level
          XBA
          LDA #$1E
          JSR C24781     ;attack will cost: Attacker's Level * 30
@@ -10911,7 +10939,7 @@ C23FE9:  LDX #$02
 
 ;Exploder effect from 42E1
 
-         TYX
+C23FFC:  TYX
          STZ $BC        ;clear the Damage Incrementor.  i don't think it
                         ;ever could have been set, aside from Morph
                         ;being Ripplered onto a Lore user.
@@ -10941,12 +10969,12 @@ C23FE9:  LDX #$02
 
 ;Special effect $4A (Super Ball
 
-         LDA #$7D
+C2402C:  LDA #$7D
          STA $B6        ;Set Animation
          JSR C24B5A     ;random: 0 to 255
          AND #$03       ;0 to 3
          BRA C24039
-         LDA #$07       ;Special Effect $2C, Launcher, jumps here
+C24037:  LDA #$07       ;Special Effect $2C, Launcher, jumps here
 C24039:  STA $3405      ;# of hits to do.  this is a zero-based counter, so
                         ;a value of 0 means 1 hit.
          REP #$20       ;Set 16-bit Accumulator
@@ -10959,7 +10987,7 @@ C24039:  STA $3405      ;# of hits to do.  this is a zero-based counter, so
 
 ;Special Effect 2 (Atma Weapon
 
-         LDA #$20
+C24044:  LDA #$20
          TSB $11A2      ;Set attack to ignore defense
          LDA #$02
          TSB $B2        ;Set no critical & ignore True Knight
@@ -10968,7 +10996,7 @@ C24039:  STA $3405      ;# of hits to do.  this is a zero-based counter, so
 
 ;Warp effect (Warp Stone uses same effect
 
-         LDA $B1
+C2404E:  LDA $B1
          BIT #$04       ;is "Can't Escape" flag set by an active enemy?
          BNE C2405A     ;branch if so
          LDA #$02
@@ -10983,7 +11011,7 @@ C2405A:  LDA #$0A
 
 ;Bababreath from 42E1
 
-         STZ $EE
+C24061:  STZ $EE
          LDX #$06
 C24065:  LDA $3AA0,X
          LSR
@@ -11020,7 +11048,7 @@ C2408D:  STA $B8        ;save the Dead/Zombied/Petrified character as sole
 ;Special effect $50 - Possess
 ;106/256 chance to miss
 
-         JSR C24B5A     ;Random Number Function 0 to 255
+C24095:  JSR C24B5A     ;Random Number Function 0 to 255
          CMP #$96
          BCC C240BA     ;Exit function if A < 150
 C2409C:  STZ $A4
@@ -11030,7 +11058,7 @@ C2409C:  STZ $A4
 
 ;L? Pearl from 42E1
 
-         LDA $1862      ;the following code will divide our 24-bit
+C240A1:  LDA $1862      ;the following code will divide our 24-bit
                         ;gold, held in $1860 - $1862, by 10.
          XBA
          LDA $1861
@@ -11051,7 +11079,7 @@ C240BA:  RTS
 
 ;Escape
 
-         CPY #$08
+C240BB:  CPY #$08
          BCS C240BA     ;Exit if monster
          LDA #$22
          STA $B5        ;use striding away animation instead of just
@@ -11065,7 +11093,7 @@ C240BA:  RTS
 
 ;Special effect $4B - Smoke Bomb
 
-         LDA #$04
+C240C8:  LDA #$04
          BIT $B1        ;is "Can't Escape" flag set by an active enemy?
          BEQ C240BA     ;Exit if not
          JSR C2409C     ;Set to no targets
@@ -11077,7 +11105,7 @@ C240D6:  STA $3401      ;Display text #9
 
 ;Forcefield
 
-         TDC            ;Clear Accumulator
+C240DA:  TDC            ;Clear Accumulator
          LDA #$FF
          EOR $3EC8
          BEQ C2409C     ;Set to no targets if all elements nullified
@@ -11093,7 +11121,7 @@ C240D6:  STA $3401      ;Display text #9
 ;<>Quadra Slam, Quadra Slice, etc.
 ;4 Random attacks
 
-         LDA #$03
+C240F1:  LDA #$03
          STA $3A70      ;# of attacks
          LDA #$40
          TSB $BA        ;Sets randomize target
@@ -11103,7 +11131,7 @@ C240D6:  STA $3401      ;Display text #9
 
 ;Blow Fish
 
-         LDA #$60
+C240FE:  LDA #$60
          TSB $11A2      ;Set Ignore defense, and no split damage
          STZ $3414      ;Set to not modify damage
          REP #$20       ;Set 16-bit Accumulator
@@ -11114,7 +11142,7 @@ C240D6:  STA $3401      ;Display text #9
 
 ;Flare Star
 
-         STZ $3414      ;Set to not modify damage
+C2410F:  STZ $3414      ;Set to not modify damage
          REP #$20       ;Set 16-bit Accumulator
          LDA $A2        ;Bitfield of targets
          JSR C2522A     ;A = a random target present in $A2
@@ -11136,14 +11164,14 @@ C240D6:  STA $3401      ;Display text #9
 ;Special effect $4C - Elixir and Megalixir.  In Item data, this appears as
 ; Special effect $04)
 
-         LDA #$80
+C24136:  LDA #$80
          TRB $11A3      ;Clears concern MP
          RTS
 
 
 ;Special effect $28 - Mind Blast
 
-         REP #$20       ;Set 16-bit Accumulator
+C2413C:  REP #$20       ;Set 16-bit Accumulator
          LDY #$06
 C24140:  LDA $A4
          JSR C2522A     ;Randomly pick an entity from among the targets
@@ -11161,7 +11189,7 @@ C24140:  LDA $A4
 ; Special Effect $29 - N. Cross
 ; Each target will have a 50% chance of being untargeted.)
 
-         JSR C24B5A     ;random #: 0 to 255
+C2414D:  JSR C24B5A     ;random #: 0 to 255
          TRB $A4
          JSR C24B5A     ;random #: 0 to 255
          TRB $A5
@@ -11170,7 +11198,7 @@ C24140:  LDA $A4
 
 ;Dice Effect
 
-         STZ $3414      ;Set to not modify damage
+C24158:  STZ $3414      ;Set to not modify damage
          LDA #$20
          TSB $11A4      ;Makes unblockable
          LDA #$0F
@@ -11271,7 +11299,7 @@ C241E3:  STA $B5        ;Store a dice toss animation
 
 ;Revenge
 
-         STZ $3414      ;Set to not modify damage
+C241E6:  STZ $3414      ;Set to not modify damage
          REP #$20       ;Set 16-bit Accumulator
          SEC
          LDA $3C1C,Y    ;Max HP
@@ -11283,7 +11311,7 @@ C241E3:  STA $B5        ;Store a dice toss animation
 ;Palidor from $42E1
 ;Makes not jump if you have Petrify, Sleep, Stop, Hide, or Freeze status
 
-         LDA #$10
+C241F6:  LDA #$10
          TSB $3A46      ;set "Palidor was summoned this turn" flag
          REP #$20
          LDX #$12
@@ -11304,7 +11332,7 @@ C24216:  DEX
 
 ;Empowerer
 
-         LDA $11A3
+C2421B:  LDA $11A3
          EOR #$80       ;Toggle Concern MP
          STA $11A3
          BPL C2422A     ;Branch if not Concern MP -- this means we're
@@ -11325,7 +11353,7 @@ C2422A:  INC $3A70      ;make the attack, including this special effect,
 
 ;Spiraler
 
-         TYX
+C24234:  TYX
          LDA $3018,X
          TRB $A2
          TRB $A4        ;Miss yourself
@@ -11340,7 +11368,7 @@ C2424A:  RTS
 
 ;Discard
 
-         JSR C2409C     ;Set to no targets
+C2424B:  JSR C2409C     ;Set to no targets
          LDA #$20
          TSB $11A4      ;Set Can't be dodged
          LDX $3358,Y    ;whom you are Seizing
@@ -11354,7 +11382,7 @@ C2424A:  RTS
 
 ;Mantra
 
-         LDA #$60
+C24263:  LDA #$60
          TSB $11A2      ;Set no split damage, & ignore defense
          STZ $3414      ;Set to not modify damage
          REP #$20       ;Set 16-bit Accumulator
@@ -11371,9 +11399,9 @@ C2424A:  RTS
 ;Special Effect $42
 ;Cuts damage to 1/4
 
-         REP #$20       ;Set 16-bit Accumulator
+C24280:  REP #$20       ;Set 16-bit Accumulator
          LSR $11B0      ;Halves damage
-         REP #$20       ;Special effect $41 jumps here
+C24285:  REP #$20       ;Special effect $41 jumps here
          LSR $11B0      ;Halves damage
          RTS
 
@@ -11381,7 +11409,7 @@ C2424A:  RTS
 ;Suplex code from 42E1
 ;Picks a random target)
 
-         LDA #$10
+C2428B:  LDA #$10
          TSB $B0        ;???  See functions C2/13D3 and C2/57C2 for usual
                         ;purpose; dunno whether it does anything here.
          REP #$20       ;Set 16-bit Accumulator
@@ -11409,7 +11437,7 @@ C242AE:  JSR C2522A     ;Randomly pick a bit
 
 ;Reflect???
 
-         REP #$20
+C242B7:  REP #$20
          LDX #$12
 C242BB:  LDA $3EF7,X
          BMI C242C5     ;Branch if Reflect status
@@ -11423,7 +11451,7 @@ C242C5:  DEX
 
 ;Quick
 
-         LDA $3402
+C242CA:  LDA $3402
          BPL C242D8     ;Branch if already under influence of Quick
          STY $3404      ;Set attacker as target under the influence
                         ;of Quick
@@ -11440,94 +11468,94 @@ C242D8:  REP #$20       ;Set 16-bit Accumulator
 
 ;Table for special effects code pointers 2 (once-per-strike
 
-C242E1: dw $3E8A
-        dw $3E8B
-        dw $4044 ;($02)
-        dw $3E8A
-        dw $3E8A
-        dw $3F73 ;($05)
-        dw $3F6E ;($06)
-        dw $3F22 ;($07)
-        dw $3E8A
-        dw $4158 ;($09)
-        dw $3F89 ;($0A)
-        dw $3F9F ;($0B)
-        dw $3F7E ;($0C)
-        dw $3E8A
-        dw $3ECA ;($0E)
-        dw $3F50 ;($0F)
-        dw $3E8A
-        dw $3F65 ;($11)
-        dw $3E8A
-        dw $41F6 ;($13)
-        dw $3E8A
-        dw $4263 ;($15)
-        dw $4234 ;($16)
-        dw $3E8A
-        dw $404E ;($18)
-        dw $3FFC ;($19)
-        dw $40FE ;($1A)
-        dw $3F54 ;($1B)
-        dw $42B7 ;($1C)
-        dw $40A1 ;($1D)
-        dw $3EA0 ;($1E)
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $40BB ;($27)
-        dw $413C ;($28)
-        dw $414D ;($29)
-        dw $410F ;($2A)
-        dw $3E8A
-        dw $4037 ;($2C)
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $428B ;($30)
-        dw $40DA ;($31)
-        dw $40F1 ;($32)
-        dw $4061 ;($33)
-        dw $3E8A
-        dw $3E8A
-        dw $421B ;($36)
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $41E6 ;($3D)
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $4285 ;($41)
-        dw $4280 ;($42)
-        dw $42CA ;($43)
-        dw $424B ;($44)
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3FAD ;($49)
-        dw $402C ;($4A)
-        dw $40C8 ;($4B)
-        dw $4136 ;($4C)
-        dw $404E ;($4D)
-        dw $3E8A
-        dw $3E8A
-        dw $4095 ;($50)
-        dw $3FB7 ;($51)
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
-        dw $3E8A
+C242E1: dw C23E8A
+      : dw C23E8B
+      : dw C24044 ;($02)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23F73 ;($05)
+      : dw C23F6E ;($06)
+      : dw C23F22 ;($07)
+      : dw C23E8A
+      : dw C24158 ;($09)
+      : dw C23F89 ;($0A)
+      : dw C23F9F ;($0B)
+      : dw C23F7E ;($0C)
+      : dw C23E8A
+      : dw C23ECA ;($0E)
+      : dw C23F50 ;($0F)
+      : dw C23E8A
+      : dw C23F65 ;($11)
+      : dw C23E8A
+      : dw C241F6 ;($13)
+      : dw C23E8A
+      : dw C24263 ;($15)
+      : dw C24234 ;($16)
+      : dw C23E8A
+      : dw C2404E ;($18)
+      : dw C23FFC ;($19)
+      : dw C240FE ;($1A)
+      : dw C23F54 ;($1B)
+      : dw C242B7 ;($1C)
+      : dw C240A1 ;($1D)
+      : dw C23EA0 ;($1E)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C240BB ;($27)
+      : dw C2413C ;($28)
+      : dw C2414D ;($29)
+      : dw C2410F ;($2A)
+      : dw C23E8A
+      : dw C24037 ;($2C)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C2428B ;($30)
+      : dw C240DA ;($31)
+      : dw C240F1 ;($32)
+      : dw C24061 ;($33)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C2421B ;($36)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C241E6 ;($3D)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C24285 ;($41)
+      : dw C24280 ;($42)
+      : dw C242CA ;($43)
+      : dw C2424B ;($44)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23FAD ;($49)
+      : dw C2402C ;($4A)
+      : dw C240C8 ;($4B)
+      : dw C24136 ;($4C)
+      : dw C2404E ;($4D)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C24095 ;($50)
+      : dw C23FB7 ;($51)
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
+      : dw C23E8A
 
 
 ;Update statuses for every entity onscreen (at battle start, on formation switch,
@@ -11727,9 +11755,9 @@ C244CF:  PLX
 
 ;Code Pointers
 
-C244D1: dw $44D7
-        dw $44EA
-        dw $44F9
+C244D1: dw C244D7
+      : dw C244EA
+      : dw C244F9
 
 ;Spell wants to set status
 C244D7:  LDA $11AA      ;get status bytes 1-2 from spell
@@ -11752,7 +11780,7 @@ C244EA:  LDA $11AA      ;get status bytes 1-2 from spell
          RTS
 
 ;Spell wants to toggle status
-         JSR C244D7     ;mark spell statuses you don't already have
+C244F9:  JSR C244D7     ;mark spell statuses you don't already have
                         ;to be set
          JMP C244EA     ;and mark the ones you do already have to
                         ;be cleared
@@ -11891,7 +11919,7 @@ C24598:  PHA            ;Put on stack
 
 ;Zombie - set
 
-         LDA #$0080
+C245A3:  LDA #$0080
          JSR C24598     ;if Death is possessed or set by the spell, mark it to
                         ;be cleared
          JSR C246A9     ;Mark this entity as having died since last
@@ -11901,21 +11929,21 @@ C24598:  PHA            ;Put on stack
 
 ;Zombie - clear
 
-         JSR C2469C     ;If monster, add to list of remaining enemies, and
+C245AE:  JSR C2469C     ;If monster, add to list of remaining enemies, and
                         ;remove from list of dead-ish ones
          BRA C245C1
  
 
 ;Muddle - set
 
-         LDA $3018,Y
+C245B3:  LDA $3018,Y
          TSB $2F53      ;cause target to be visually flipped
          BRA C245C1
  
 
 ;Muddle - clear
 
-         LDA $3018,Y
+C245BB:  LDA $3018,Y
          TRB $2F53      ;cancel visual flipping of target
 C245C1:  PHX
          LDX $3018,Y
@@ -11928,7 +11956,7 @@ C245C1:  PHX
 
 ;Clear - set
 
-         PHX
+C245CB:  PHX
          LDX $3019,Y
          TXA
          TSB $2F44
@@ -11939,7 +11967,7 @@ C245C1:  PHX
 ;Clear - clear
 ;is there an echo in here?!  who's on first?)
 
-         PHX
+C245D5:  PHX
          LDX $3019,Y
          TXA
          TRB $2F44
@@ -11949,9 +11977,9 @@ C245C1:  PHX
 
 ;Imp - set or clear
 
-         LDA #$0088
+C245DF:  LDA #$0088
          JSR C2464C
-         CPY #$08       ;Rage - clear   enters here
+C245E5:  CPY #$08       ;Rage - clear   enters here
          BCS C245F1     ;Exit function if monster
          PHX
          TYA
@@ -11965,7 +11993,7 @@ C245F1:  RTS
 
 ;Petrify - clear and Death - clear
 
-         JSR C2469C     ;If monster, add to list of remaining enemies, and
+C245F2:  JSR C2469C     ;If monster, add to list of remaining enemies, and
                         ;remove from list of dead-ish ones
          LDA #$4000
          JSR C24656     ;consolidate: "JSR C24653"
@@ -11974,14 +12002,14 @@ C245F1:  RTS
  
 
 ;Death - set
-         LDA #$0140
+C24600:  LDA #$0140
          JSR C24598     ;if Petrify or Condemned are possessed or set by the spell,
                         ;mark them to be cleared
          LDA #$0080
          TRB $F4        ;remove Death from statuses to be cleared
 
 ;Petrify - set
-         JSR C246A9     ;Mark this entity as having died since last
+C2460B:  JSR C246A9     ;Mark this entity as having died since last
                         ;executing Command 1Fh, "Run Monster Script"
          LDA #$FE15
          JSR C24598     ;if Dark, Poison, Clear, Near Fatal, Image, Mute, Berserk,
@@ -12005,7 +12033,7 @@ C24626:  LDA $3AA0,Y
 
 ;Sleep - set
 
-         PHP
+C24634:  PHP
          SEP #$20       ;Set 8-bit A
          LDA #$12
          STA $3CF9,Y    ;Time until Sleep wears off
@@ -12015,11 +12043,11 @@ C24626:  LDA $3AA0,Y
 
 ;Condemned - set
 
-         LDA #$0020
+C2463F:  LDA #$0020
          BRA C2464C
-         LDA #$0010     ;Condemned - clear  enters here
+C24644:  LDA #$0010     ;Condemned - clear  enters here
          BRA C2464C
-         LDA #$0008     ;Mute - set or clear  enter here
+C24649:  LDA #$0008     ;Mute - set or clear  enter here
 C2464C:  ORA $3204,Y
          STA $3204,Y
          RTS
@@ -12035,41 +12063,41 @@ C24656:  ORA $3AA0,Y
 
 ;Seizure - set
 
-         LDA #$0002
+C2465D:  LDA #$0002
          TSB $F6        ;mark Regen to be cleared
          RTS
 
 
 ;Regen - set
 
-         LDA #$4000
+C24663:  LDA #$4000
          TSB $F4        ;mark Seizure to be cleared
          RTS
 
 
 ;Slow - set
 
-         LDA #$0008
+C24669:  LDA #$0008
          BRA C24671     ;mark Haste to be cleared
 
 
 ;Haste - set
 
-         LDA #$0004     ;mark Slow to be cleared
+C2466E:  LDA #$0004     ;mark Slow to be cleared
 C24671:  TSB $F6
-         LDA #$0004     ;Haste - clear  and  Slow - clear  enter here
+C24673:  LDA #$0004     ;Haste - clear  and  Slow - clear  enter here
          BRA C2464C
  
 
 ;Morph - set or clear
 
-         LDA #$0002
+C24678:  LDA #$0002
          BRA C2464C
  
 
 ;Stop - set
 
-         PHP
+C2467D:  PHP
          SEP #$20       ;Set 8-bit A
          LDA #$12
          STA $3AF1,Y    ;Time until Stop wears off
@@ -12079,7 +12107,7 @@ C24671:  TSB $F6
 
 ;Reflect - set
 
-         PHP
+C24687:  PHP
          SEP #$20       ;Set 8-bit A
          LDA #$1A
          STA $3F0C,Y    ;Time until Reflect wears off, though permanency
@@ -12090,7 +12118,7 @@ C24671:  TSB $F6
 
 ;Freeze - set
 
-         PHP
+C24691:  PHP
          SEP #$20       ;Set 8-bit A
          LDA #$22
          STA $3F0D,Y    ;Time until Freeze wears off
@@ -12104,7 +12132,7 @@ C24671:  TSB $F6
 ; Dance, Shell, Safe,
 ; Rage [set only], Life 3, Spell, Hide, Dog Block, Float)
 
-         RTS
+C2469B:  RTS
 
 
 ;If monster, add to list of remaining enemies, and remove from list of dead-ish ones
@@ -12129,74 +12157,74 @@ C246A9:  LDA $3018,Y
 
 ;Set status pointers ("side effects" to perform upon setting of a status:
 
-C246B0: dw $469B ;(Dark)        (Jumps to RTS)
-        dw $45A3 ;(Zombie)
-        dw $469B ;(Poison)      (Jumps to RTS)
-        dw $469B ;(M-Tek)       (Jumps to RTS)
-        dw $45CB ;(Clear)
-        dw $45DF ;(Imp)
-        dw $460B ;(Petrify)
-        dw $4600 ;(Death)
-        dw $463F ;(Condemned)
-        dw $469B ;(Near Fatal)  (Jumps to RTS)
-        dw $469B ;(Image)       (Jumps to RTS)
-        dw $4649 ;(Mute)
-        dw $469B ;(Berserk)     (Jumps to RTS)
-        dw $45B3 ;(Muddle)
-        dw $465D ;(Seizure)
-        dw $4634 ;(Sleep)
-C246D0: dw $469B ;(Dance)       (Jumps to RTS)
-        dw $4663 ;(Regen)
-        dw $4669 ;(Slow)
-        dw $466E ;(Haste)
-        dw $467D ;(Stop)
-        dw $469B ;(Shell)       (Jumps to RTS)
-        dw $469B ;(Safe)        (Jumps to RTS)
-        dw $4687 ;(Reflect)
-        dw $469B ;(Rage)        (Jumps to RTS)
-        dw $4691 ;(Freeze)
-        dw $469B ;(Life 3)      (Jumps to RTS)
-        dw $4678 ;(Morph)
-        dw $469B ;(Spell)       (Jumps to RTS)
-        dw $469B ;(Hide)        (Jumps to RTS)
-        dw $469B ;(Dog Block)   (Jumps to RTS)
-        dw $469B ;(Float)       (Jumps to RTS)
+C246B0: dw C2469B ;(Dark)        (Jumps to RTS)
+      : dw C245A3 ;(Zombie)
+      : dw C2469B ;(Poison)      (Jumps to RTS)
+      : dw C2469B ;(M-Tek)       (Jumps to RTS)
+      : dw C245CB ;(Clear)
+      : dw C245DF ;(Imp)
+      : dw C2460B ;(Petrify)
+      : dw C24600 ;(Death)
+      : dw C2463F ;(Condemned)
+      : dw C2469B ;(Near Fatal)  (Jumps to RTS)
+      : dw C2469B ;(Image)       (Jumps to RTS)
+      : dw C24649 ;(Mute)
+      : dw C2469B ;(Berserk)     (Jumps to RTS)
+      : dw C245B3 ;(Muddle)
+      : dw C2465D ;(Seizure)
+      : dw C24634 ;(Sleep)
+C246D0: dw C2469B ;(Dance)       (Jumps to RTS)
+      : dw C24663 ;(Regen)
+      : dw C24669 ;(Slow)
+      : dw C2466E ;(Haste)
+      : dw C2467D ;(Stop)
+      : dw C2469B ;(Shell)       (Jumps to RTS)
+      : dw C2469B ;(Safe)        (Jumps to RTS)
+      : dw C24687 ;(Reflect)
+      : dw C2469B ;(Rage)        (Jumps to RTS)
+      : dw C24691 ;(Freeze)
+      : dw C2469B ;(Life 3)      (Jumps to RTS)
+      : dw C24678 ;(Morph)
+      : dw C2469B ;(Spell)       (Jumps to RTS)
+      : dw C2469B ;(Hide)        (Jumps to RTS)
+      : dw C2469B ;(Dog Block)   (Jumps to RTS)
+      : dw C2469B ;(Float)       (Jumps to RTS)
 
 
 ;Clear status pointers ("side effects" to perform upon clearing of a status:
 
-C246F0: dw $469B ;(Dark)        (Jumps to RTS)
-        dw $45AE ;(Zombie)
-        dw $469B ;(Poison)      (Jumps to RTS)
-        dw $469B ;(M-Tek)       (Jumps to RTS)
-        dw $45D5 ;(Clear)
-        dw $45DF ;(Imp)
-        dw $45F2 ;(Petrify)
-        dw $45F2 ;(Death)
-        dw $4644 ;(Condemned)
-        dw $469B ;(Near Fatal)  (Jumps to RTS)
-        dw $469B ;(Image)       (Jumps to RTS)
-        dw $4649 ;(Mute)
-        dw $469B ;(Berserk)     (Jumps to RTS)
-        dw $45BB ;(Muddle)
-        dw $469B ;(Seizure)     (Jumps to RTS)
-        dw $4653 ;(Sleep)
-C24710: dw $469B ;(Dance)       (Jumps to RTS)
-        dw $469B ;(Regen)       (Jumps to RTS)
-        dw $4673 ;(Slow)
-        dw $4673 ;(Haste)
-        dw $469B ;(Stop)        (Jumps to RTS)
-        dw $469B ;(Shell)       (Jumps to RTS)
-        dw $469B ;(Safe)        (Jumps to RTS)
-        dw $469B ;(Reflect)     (Jumps to RTS)
-        dw $45E5 ;(Rage)
-        dw $469B ;(Freeze)      (Jumps to RTS)
-        dw $469B ;(Life 3)      (Jumps to RTS)
-        dw $4678 ;(Morph)
-        dw $469B ;(Spell)       (Jumps to RTS)
-        dw $469B ;(Hide)        (Jumps to RTS)
-        dw $469B ;(Dog Block)   (Jumps to RTS)
-        dw $469B ;(Float)       (Jumps to RTS)
+C246F0: dw C2469B ;(Dark)        (Jumps to RTS)
+      : dw C245AE ;(Zombie)
+      : dw C2469B ;(Poison)      (Jumps to RTS)
+      : dw C2469B ;(M-Tek)       (Jumps to RTS)
+      : dw C245D5 ;(Clear)
+      : dw C245DF ;(Imp)
+      : dw C245F2 ;(Petrify)
+      : dw C245F2 ;(Death)
+      : dw C24644 ;(Condemned)
+      : dw C2469B ;(Near Fatal)  (Jumps to RTS)
+      : dw C2469B ;(Image)       (Jumps to RTS)
+      : dw C24649 ;(Mute)
+      : dw C2469B ;(Berserk)     (Jumps to RTS)
+      : dw C245BB ;(Muddle)
+      : dw C2469B ;(Seizure)     (Jumps to RTS)
+      : dw C24653 ;(Sleep)
+C24710: dw C2469B ;(Dance)       (Jumps to RTS)
+      : dw C2469B ;(Regen)       (Jumps to RTS)
+      : dw C24673 ;(Slow)
+      : dw C24673 ;(Haste)
+      : dw C2469B ;(Stop)        (Jumps to RTS)
+      : dw C2469B ;(Shell)       (Jumps to RTS)
+      : dw C2469B ;(Safe)        (Jumps to RTS)
+      : dw C2469B ;(Reflect)     (Jumps to RTS)
+      : dw C245E5 ;(Rage)
+      : dw C2469B ;(Freeze)      (Jumps to RTS)
+      : dw C2469B ;(Life 3)      (Jumps to RTS)
+      : dw C24678 ;(Morph)
+      : dw C2469B ;(Spell)       (Jumps to RTS)
+      : dw C2469B ;(Hide)        (Jumps to RTS)
+      : dw C2469B ;(Dog Block)   (Jumps to RTS)
+      : dw C2469B ;(Float)       (Jumps to RTS)
 
 
 ;??? Function (Called from other bank
@@ -12226,11 +12254,11 @@ C24730:  PHX
 
 ;Pointers
 
-C2474B: dw $474F
-        dw $4778
+C2474B: dw C2474F
+      : dw C24778
 
 
-         JSR C22966     ;load spell data
+C2474F:  JSR C22966     ;load spell data
          LDA $11A4
          BPL C24775     ;Branch if damage/healing not based on HP or MP
          LDA $11A6      ;Spell Power
@@ -12249,7 +12277,7 @@ C2476C:  SEP #$10       ;set 16-bit X and Y
 C24775:  JMP C22B69     ;Magical Damage Calculation
 
 
-         JSR C22A37     ;item usage setup
+C24778:  JSR C22A37     ;item usage setup
          LDA #$01
          TSB $11A2      ;Sets physical attack
          RTS
@@ -12485,17 +12513,17 @@ C248CE:  LDA $3018,X
 
 
 ;Gau leapt
-         LDX $300B      ;which character is Gau
+C248E0:  LDX $300B      ;which character is Gau
          JSR C247E3     ;remove him from all parties
          LDA #$08
          TRB $1EDF      ;un-enlist Gau
 ;   FB 09-Used by returning Gau when he joins the party , enters here)
-         JSR C24A07     ;Add rages learned in battle
+C248EB:  JSR C24A07     ;Add rages learned in battle
          BRA C2488F
  
 
 ;Banon fell
-         LDA #$36
+C248F0:  LDA #$36
          JSR C25FCA     ;handle battle ending in loss
 C248F5:  BRA C2488F
  
@@ -12503,13 +12531,13 @@ C248F5:  BRA C2488F
 ;<>Pointers for Special Combat Endings
 ;Code pointers
 
-        dw $4897    ;(02-Warp)
-        dw $48E0    ;(04-Gau leapt)
-        dw $48F0    ;(06-Banon fell)
-        dw $48A1    ;(08-FB 02-Usual monster script way to end a battle)
-        dw $48EB    ;0A-FB 09-Used by returning Gau when he joins the
+      : dw C24897    ;(02-Warp)
+      : dw C248E0    ;(04-Gau leapt)
+      : dw C248F0    ;(06-Banon fell)
+      : dw C248A1    ;(08-FB 02-Usual monster script way to end a battle)
+      : dw C248EB    ;0A-FB 09-Used by returning Gau when he joins the
                      ; party
-        dw $4A22    ;(0C-Final battle tier transition)
+      : dw C24A22    ;(0C-Final battle tier transition)
 
 
 C24903:  JSR C20B36     ;Establish new value for Morph supply based on its
@@ -12727,7 +12755,7 @@ C24A7A:  LDA C24AAB,X
          STA $11E0      ;update Battle formation to the next one of the
                         ;tiers
          SEP #$20
-         LDA C24AB3,X  ;holds some transition animation ID, and indicates
+         LDA C24AB3,X   ;holds some transition animation ID, and indicates
                         ;one of last 3 tiers of final 4-tier multi-battle
                         ;by being non-FFh
          STA $3EE1
@@ -12756,12 +12784,12 @@ C24A9E:  STZ $3EE4,X    ;Clear Status Byte 1
 
 C24AAB: dw $01D7     ;(Short Arm, Long Arm, Face)
 C24AAD: dw $0200     ;(Hit, Tiger, Tools)
-        dw $0201     ;(Girl, Sleep)
-        dw $0202     ;(Final Kefka)
+      : dw $0201     ;(Girl, Sleep)
+      : dw $0202     ;(Final Kefka)
 
 C24AB3: dw $9090
-        dw $9090
-        dw $8F8F
+      : dw $9090
+      : dw $8F8F
 
 
 ;Update lists and counts of present and/or living characters and monsters
@@ -12892,7 +12920,7 @@ C24B7B:  SEC
                         ;off processing any entity.
          LDA #$01
          TSB $B1        ;indicate it's an unconventional attack
-         PEA $0018      ;will return to C2/0019
+         PEA.w C20019-1 ;will return to C2/0019
 C24B86:  LDA $32CD,X    ;get entry point to entity's counterattack or periodic
                         ;damage/healing linked list queue
          BMI C24BF3     ;exit if null.  that can happen if:
@@ -13301,12 +13329,12 @@ C24DB4:  CMP #$0F
          PHA            ;save command #
          XBA            ;get our Slot index
          TAX
-         LDA C24E4A,X  ;get spell # used by this Slot combo
+         LDA C24E4A,X   ;get spell # used by this Slot combo
          CPX #$02
          BCS C24DD2     ;branch if it's Bahamut or higher -- i.e. neither form
                         ;of Joker Doom
          PHA            ;save spell #
-         LDA C24E52,X  ;get Joker Doom targeting
+         LDA C24E52,X   ;get Joker Doom targeting
          STA $B8,X      ;if X is 0 [7-7-Bar], mark all party members in $B8
                         ;if X is 1 [7-7-7], mark all enemies in $B9
          LDA $B8
@@ -13354,12 +13382,12 @@ C24E10:  PLA
          XBA
          PLA
 C24E13:  LDX #$04
-C24E15:  CMP $C24E3C,X  ;does our command match one that needs its
+C24E15:  CMP C24E3C,X   ;does our command match one that needs its
                         ;spell # calculated?
          BNE C24E26     ;branch if not
          XBA
          CLC
-         ADC $C24E41,X  ;add the first spell # for this command to our
+         ADC C24E41,X   ;add the first spell # for this command to our
                         ;current index.  ex - for Pummel, Blitz #0, we'd
                         ;end up with 55h.
          BCC C24E25     ;branch if the spell # didn't overflow
@@ -13370,7 +13398,7 @@ C24E26:  DEX
          PHA            ;Put on stack
          CLC            ;clear Carry
          JSR C25217     ;X = A DIV 8, A = 2 ^ (A MOD 8)
-         AND $C24E46,X  ;compare to bitfield of commands that need to retarget
+         AND C24E46,X   ;compare to bitfield of commands that need to retarget
          BEQ C24E38     ;Branch if command doesn't need to retarget
          STZ $B8
          STZ $B9        ;clear targets
@@ -13383,45 +13411,45 @@ C24E38:  PLA
 ;Data - commands that need their spell # calculated
 
 C24E3C: db $19   ;(Summon)
-        db $0C   ;(Lore)
-        db $1D   ;(Magitek)
-        db $0A   ;(Blitz)
-        db $07   ;(Swdtech)
+      : db $0C   ;(Lore)
+      : db $1D   ;(Magitek)
+      : db $0A   ;(Blitz)
+      : db $07   ;(Swdtech)
 
 
 ;Data - first spell # for each of above commands
 
 C24E41: db $36   ;(Espers)
-        db $8B   ;(Lores)
-        db $83   ;(Magitek commands)
-        db $5D   ;(Blitzes)
-        db $55   ;(Swdtech)
+      : db $8B   ;(Lores)
+      : db $83   ;(Magitek commands)
+      : db $5D   ;(Blitzes)
+      : db $55   ;(Swdtech)
 
 
 ;Data - commands that need to retarget.  8 commands per byte.
 
 C24E46: db $80   ;(Swdtech)
-        db $04   ;(Blitz)
-        db $0B   ;(Rage, Leap, Dance)
-        db $00   ;(Nothing)
+      : db $04   ;(Blitz)
+      : db $0B   ;(Rage, Leap, Dance)
+      : db $00   ;(Nothing)
 
 
 ;Data - spell numbers for Slot attacks
 
 C24E4A: db $94   ;(L.5 Doom -- used by Joker Doom [7-7-Bar])
-        db $94   ;(L.5 Doom -- used by Joker Doom [7-7-7])
-        db $43   ;(Bahamut)
-        db $FF   ;(Nothing -- used by Triple Bar?)
-        db $80   ;(H-Bomb)
-        db $7F   ;(Chocobop)
-        db $81   ;(7-Flush)
-        db $FE   ;(Lagomorph)
+      : db $94   ;(L.5 Doom -- used by Joker Doom [7-7-7])
+      : db $43   ;(Bahamut)
+      : db $FF   ;(Nothing -- used by Triple Bar?)
+      : db $80   ;(H-Bomb)
+      : db $7F   ;(Chocobop)
+      : db $81   ;(7-Flush)
+      : db $FE   ;(Lagomorph)
 
 
 ;Data - Joker Doom targeting
 
 C24E52: db $0F   ;(7-7-bar => your whole party)
-        db $3F   ;(7-7-7  => whole enemy party)
+      : db $3F   ;(7-7-7  => whole enemy party)
 
 
 ;Add a record to the "master list".  It contains standalone records, or linked
@@ -13663,7 +13691,7 @@ C24F54:  PLP
 
 ;Monster command script command #$F7
 
-         LDA $B6
+C24F57:  LDA $B6
          XBA
          LDA #$0F
          JMP C262BF
@@ -13673,7 +13701,7 @@ C24F54:  PLP
 ;               cast when character enters Near Fatal (* no items actually do this,
 ;               but it's supported); or revival due to Life 3.
 
-         LDA $B8        ;get spell ID?
+C24F5F:  LDA $B8        ;get spell ID?
          LDX $B6        ;get target?
          STA $B6        ;save spell ID
          CMP #$0D
@@ -13708,7 +13736,7 @@ C24F78:  XBA
 
 ;Monster command script command #$F5
 
-         STZ $3A2A
+C24F97:  STZ $3A2A
          STZ $3A2B      ;clear temporary bytes 3 and 4 for ($76 animation
                         ;buffer
          LDA $3A73
@@ -13735,12 +13763,12 @@ C24FB4:  DEY
 
 ;Command F5 nn 04
 
-         PHA            ;Put on stack
+C24FC2:  PHA            ;Put on stack
          LDA #$FF
          STA $3A95      ;prohibit C2/47FB from checking for combat end
          PLA
          BRA C24FCE
-         TSB $2F4D      ;Command F5 nn 01 enters here
+C24FCB:  TSB $2F4D      ;Command F5 nn 01 enters here
                         ;mark enemy to be removed from the battlefield
 C24FCE:  TRB $3409      ;Command F5 nn 03 enters here
          TRB $2F2F      ;remove from bitfield of remaining enemies?
@@ -13753,13 +13781,13 @@ C24FDF:  RTS
 
 ;Command F5 nn 00
 
-         PHA            ;Put on stack
+C24FE0:  PHA            ;Put on stack
          REP #$20
          LDA $3C1C,Y    ;Max HP
          STA $3BF4,Y    ;Current HP
          SEP #$20
          PLA
-         TRB $3A3A      ;Command F5 nn 02 enters here
+C24FEC:  TRB $3A3A      ;Command F5 nn 02 enters here
                         ;remove from bitfield of dead-ish monsters?
          TSB $2F2F      ;add to bitfield of remaining enemies?
          TSB $3A2B      ;mark in temporary byte 4 for ($76) animation buffer
@@ -13771,7 +13799,7 @@ C24FDF:  RTS
 
 ;Command F5 nn 05
 
-         JSR C24FCE
+C24FFF:  JSR C24FCE
          LDA $3EE4,Y
          ORA #$80
          STA $3EE4,Y    ;Set Death status
@@ -13780,7 +13808,7 @@ C24FDF:  RTS
 
 ;Regen, Poison, and Seizure/Phantasm damage or healing
 
-         LDA $3A77
+C2500B:  LDA $3A77
          BEQ C24FDF     ;Exit if no monsters left in combat
          LDA $3AA1,Y
          AND #$EF
@@ -13841,7 +13869,7 @@ C25069:  ADC #$02
 ;Monster command script command #$F2
 ;$B8 and bottom 7 bits of $B9 = new formation to change to)
 
-         LDA $B8        ;Byte 2
+C25072:  LDA $B8        ;Byte 2
          STA $11E0      ;Monster formation, byte 1
          ASL $3A47      ;shift out old bit 7
          LDA $B9        ;Byte 3.  top bit: 1 = monsters get Max HP.
@@ -13887,9 +13915,9 @@ C2508D:  STZ $3AA8,X    ;clear enemy presence flag
 
 ;Command #$25
 
-         LDA #$02
+C250CD:  LDA #$02
          BRA C250D3
-         LDA #$10       ;Command #$21 - F3 Command script enters here
+C250D1:  LDA #$10       ;Command #$21 - F3 Command script enters here
 C250D3:  XBA
          LDA $B6
          XBA
@@ -13900,7 +13928,7 @@ C250D3:  XBA
 
 ;Command #$27 - Display Scan info
 
-         LDX $B6        ;get target of original casting
+C250DD:  LDX $B6        ;get target of original casting
          LDA #$FF
          STA $2D72      ;first byte of second entry of ($76) buffer
          LDA #$02
@@ -13960,7 +13988,7 @@ C2515A:  INC $2D6F      ;advance to "Weak against" message with next
 
 ;Remove Stop, Reflect, Freeze, or Sleep when time is up
 
-         LDX $3A7D      ;get entity, whom the game regards as performing
+C25161:  LDX $3A7D      ;get entity, whom the game regards as performing
                         ;this action on oneself
          JSR C2298A     ;Load command data, and clear special effect,
                         ;magic power, etc.
@@ -14004,7 +14032,7 @@ C251A0:  LDA #$04
 ;              poses?  can't always see effect, but this lets Petrify take spellcaster
 ;              out of chant pose or relax a Defender, for instance.)
 
-         LDA $3A7D
+C251A8:  LDA $3A7D
          LSR            ;convert target # to 0, 1, 2, etc
          XBA
          LDA #$0E       ;Battle Dynamics Command 0Eh
@@ -14013,7 +14041,7 @@ C251A0:  LDA #$04
 
 ;Command #$2D (Drain from being seized
 
-         LDA $3AA1,Y
+C251B2:  LDA $3AA1,Y
          AND #$EF
          STA $3AA1,Y    ;Clear bit 4 of $3AA1,Y.  because we're servicing this
                         ;damage/healing request, we can allow C2/5A83 to queue
@@ -14046,12 +14074,12 @@ C251A0:  LDA #$04
 
 ;Code pointers for command #$F5
 
-C251E4: dw $4FE0
-        dw $4FCB
-        dw $4FEC
-        dw $4FCE
-        dw $4FC2
-        dw $4FFF
+C251E4: dw C24FE0
+      : dw C24FCB
+      : dw C24FEC
+      : dw C24FCE
+      : dw C24FC2
+      : dw C24FFF
 
 
 ;X = Highest bit in A that is 1 (bit 0 = 0, 1 = 1, etc.
@@ -14169,7 +14197,7 @@ C2524D:  XBA
                         ;Formation type into Carry
          XBA
          BCC C25256     ;Branch if type not allowed
-         ADC $C25269,X  ;Add chance to get that type, which includes
+         ADC C25269,X   ;Add chance to get that type, which includes
                         ;plus one for always-set Carry.
 C25256:  STA $00FC,Y    ;build an array that determines which ranges
                         ;of random numbers will result in which
@@ -14196,9 +14224,9 @@ C25262:  DEX
 ; Storm, Throw character)
 ;Denominator of the probability is the sum of the effective values.)
 C25269: dd $FFFF5F9E    ;(No Rage Ring or Blizzard Orb)
-        dd $5FFF3F5E    ;(Rage Ring)
-        dd $FF5F3F5E    ;(Blizzard Orb)
-        dd $3F3F3F3E    ;(Both)
+      : dd $5FFF3F5E    ;(Rage Ring)
+      : dd $FF5F3F5E    ;(Blizzard Orb)
+      : dd $3F3F3F3E    ;(Both)
 
 ;Each effective value is the Numerator of probability of getting a
 ; certain type of attack formation, in the order: Side, Pincer,
@@ -14206,7 +14234,7 @@ C25269: dd $FFFF5F9E    ;(No Rage Ring or Blizzard Orb)
 ;Denominator of the probability is the sum of the effective values,
 ; excluding those of formations that were skipped at C2/5250 due
 ; to not being allowed.)
-        dd $CF07071E    ;(For choosing type of battle)
+      : dd $CF07071E    ;(For choosing type of battle)
 
 
 
@@ -14219,7 +14247,7 @@ C2527D:  PHX
          PHP
          REP #$30       ;Set 16-bit A, X and Y
          TXY
-         LDA C2544A,X  ;Get address of character's menu
+         LDA C2544A,X   ;Get address of character's menu
          TAX
          SEP #$20       ;Set 8-bit Accumulator
          LDA $3018,Y
@@ -14264,7 +14292,7 @@ C252C3:  PLA            ;fetch command #
 ; its aiming.  If so, a special function is called for the command.)
 
          LDX #$0007
-C252C9:  CMP $C252E9,X  ;does our current command match one whose menu
+C252C9:  CMP C252E9,X   ;does our current command match one whose menu
                         ;availability or aiming can vary?
          BNE C252D7     ;if not, compare it to next command in table
          TXA
@@ -14296,31 +14324,31 @@ C252DB:  PLX
 ; or have a property like their aiming altered.)
 
 C252E9: db $03    ;(Morph)
-        db $0B    ;(Runic)
-        db $07    ;(SwdTech)
-        db $0C    ;(Lore)
-        db $17    ;(X-Magic)
-        db $02    ;(Magic)
-        db $06    ;(Capture)
-        db $00    ;(Fight)
+      : db $0B    ;(Runic)
+      : db $07    ;(SwdTech)
+      : db $0C    ;(Lore)
+      : db $17    ;(X-Magic)
+      : db $02    ;(Magic)
+      : db $06    ;(Capture)
+      : db $00    ;(Fight)
 
 
 ;Data - addresses of functions to check whether above command should be
 ; enabled, disabled, or otherwise modified on battle menu)
 
-C252F1: dw $5326   ;(Morph)
-        dw $5322   ;(Runic)
-        dw $531D   ;(SwdTech)
-        dw $5314   ;(Lore)
-        dw $5314   ;(X-Magic)
-        dw $5314   ;(Magic)
-        dw $5301   ;(Capture)
-        dw $5301   ;(Fight)
+C252F1: dw C25326   ;(Morph)
+      : dw C25322   ;(Runic)
+      : dw C2531D   ;(SwdTech)
+      : dw C25314   ;(Lore)
+      : dw C25314   ;(X-Magic)
+      : dw C25314   ;(Magic)
+      : dw C25301   ;(Capture)
+      : dw C25301   ;(Fight)
 
 
 ;For Capture and Fight menu slots
 
-         LDA $3C58,Y    ;Check for offering
+C25301:  LDA $3C58,Y    ;Check for offering
          LSR
          BCC C25313     ;Exit if no Offering
          REP #$21       ;Set 16-bit Accumulator.  Clear Carry to enable
@@ -14338,7 +14366,7 @@ C25313:  RTS
 
 ;For Lore, X-Magic, and Magic menu slots
 
-         LDA $3EE5,Y
+C25314:  LDA $3EE5,Y
          BIT #$08       ;is character Muted?
          BEQ C2531C     ;branch if not
          SEC            ;if they are, mark menu slot to be disabled?
@@ -14347,7 +14375,7 @@ C2531C:  RTS
 
 ;For SwdTech menu slot
 
-         LDA $EF
+C2531D:  LDA $EF
          LSR
          LSR            ;Carry = Bit 1, which was set in function C2/527D
          RTS            ;if it was set, menu slot will be disabled..
@@ -14356,14 +14384,14 @@ C2531C:  RTS
 
 ;For Runic menu slot
 
-         LDA $EF
+C25322:  LDA $EF
          ASL            ;Carry = Bit 7, which was set in function C2/527D
          RTS            ;if it was set, menu slot will be disabled..
                         ;if it wasn't, slot is enabled
 
 ;For Morph menu slot
 
-         LDA #$0F
+C25326:  LDA #$0F
          CMP $1CF6      ;compare to Morph supply
          RTS            ;if Morph supply isn't at least 16, menu slot will
                         ;be disabled..  if it's >=16, slot is enabled
@@ -14380,7 +14408,7 @@ C2532C:  PHX
          PHP
          REP #$30       ;Set 16-bit A, X, and Y
          LDY $3010,X    ;get offset to character info block
-         LDA C2544A,X  ;get address of character's menu
+         LDA C2544A,X   ;get address of character's menu
          STA $002181    ;this means that future writes to $00218n in this function
                         ;will modify that character's menu?
          LDA $1616,Y    ;1st and 2nd menu slots
@@ -14450,7 +14478,7 @@ C253A5:  LDA $00FC,Y    ;get command from menu slot
          PHA            ;Put on stack
          LDA #$04
          STA $EE        ;start checking Bit 2 of variable $11D6
-C253AF:  LDA C25452,X  ;commands that can be changed FROM
+C253AF:  LDA C25452,X   ;commands that can be changed FROM
          CMP $01,S      ;is current command one of those commands?
          BNE C253C4     ;branch if not
          LDA $11D6      ;check Battle Effects 1 byte.
@@ -14459,7 +14487,7 @@ C253AF:  LDA C25452,X  ;commands that can be changed FROM
                         ;Bit 6 = Steal -> Capture
          BIT $EE
          BEQ C253C4
-         LDA C25457,X  ;commands to change TO
+         LDA C25457,X   ;commands to change TO
          STA $01,S      ;replace command on stack
 C253C4:  ASL $EE        ;will check the next highest bit of $11D6
                         ;in our next iteration
@@ -14473,7 +14501,7 @@ C253C4:  ASL $EE        ;will check the next highest bit of $11D6
 
          LDA $01,S      ;get current command
          LDX #$05
-C253CD:  CMP $C25468,X  ;is it one of the commands that can be blanked from menu
+C253CD:  CMP C25468,X   ;is it one of the commands that can be blanked from menu
                         ;or have other miscellaneous crap done?
          BNE C253DB     ;branch if not
          TXA
@@ -14486,7 +14514,7 @@ C253DB:  DEX
          BPL C253CD     ;there are 6 possible commands that need
                         ;special checks
 C253DE:  PLA            ;restore command #, which may've been nulled by our
-                        ;C2545C special function)
+;                                     C2545C special function)
          STA $002180    ;save command # in first menu byte
          STA $002180    ;save command # again in second menu byte..  all i know
                         ;about this byte is that the top bit will be set if the
@@ -14519,7 +14547,7 @@ C25408:  PLP
 
 ;Morph menu entry
 
-         LDA #$04
+C2540B:  LDA #$04
          BIT $3EBC      ;set after retrieving Terra from Zozo -- allows
                         ;Morph command
          BEQ C25434     ;if not set, go null out command
@@ -14543,7 +14571,7 @@ C25408:  PLP
 
 ;Blank out Magic/X-Magic menu if no spells are known and no Esper is equipped
 
-         LDA $F6        ;# of spells learnt
+C25429:  LDA $F6        ;# of spells learnt
          BNE C25445     ;if some are, branch and set a flag
          LDA $F7        ;index of Esper equipped.  this value starts with 0
                         ;for Ramuh, and the order matches the Espers' order in
@@ -14560,13 +14588,13 @@ C25438:  RTS
 
 ;Dance menu entry
 
-         LDA $1D4C      ;bitfield of known Dances
+C25439:  LDA $1D4C      ;bitfield of known Dances
          BRA C25432     ;if none are, menu entry will be nulled after branch
 
 
 ;Leap menu entry
 
-         LDA $11E4
+C2543E:  LDA $11E4
          BIT #$02       ;is Leap available?
          BRA C25432     ;if it's not, menu entry will be nulled after branch
 
@@ -14585,49 +14613,49 @@ C25445:  LDA #$01
 ;Data - addressed by index of character onscreen -- 0, 2, 4, or 6
 ;Points to each of their menus, which are 4 entries, 3 bytes per entry.)
 C2544A: dw $202E
-        dw $203A
-        dw $2046
-        dw $2052
+      : dw $203A
+      : dw $2046
+      : dw $2052
 
 
 ;Data - commands that can be replaced with other commands thanks to Relics
 
 C25452: db $05   ;(Steal)
-        db $0F   ;(Slot)
-        db $0D   ;(Sketch)
-        db $02   ;(Magic)
-        db $00   ;(Fight)
+      : db $0F   ;(Slot)
+      : db $0D   ;(Sketch)
+      : db $02   ;(Magic)
+      : db $00   ;(Fight)
 
 
 ;Data - commands that can replace above commands due to Relics
 
 C25457: db $06   ;(Capture)
-        db $18   ;(GP Rain)
-        db $0E   ;(Control)
-        db $17   ;(X-Magic)
-        db $16   ;(Jump)
+      : db $18   ;(GP Rain)
+      : db $0E   ;(Control)
+      : db $17   ;(X-Magic)
+      : db $16   ;(Jump)
 
 
 ;Pointers - functions to remove commands from in-battle menu, or to make
 ; miscellaneous adjustments)
 
-C2545C: dw $540B   ;(Morph)
-        dw $543E   ;(Leap)
-        dw $5439   ;(Dance)
-        dw $5429   ;(Magic)
-        dw $5429   ;(X-Magic)
-        dw $5445   ;(Lore)
+C2545C: dw C2540B   ;(Morph)
+      : dw C2543E   ;(Leap)
+      : dw C25439   ;(Dance)
+      : dw C25429   ;(Magic)
+      : dw C25429   ;(X-Magic)
+      : dw C25445   ;(Lore)
 
 
 ;Data - commands that can be removed from menu in some circumstances, or otherwise
 ; need special functions.)
 
 C25468: db $03   ;(Morph)
-        db $11   ;(Leap)
-        db $13   ;(Dance)
-        db $02   ;(Magic)
-        db $17   ;(X-Magic)
-        db $0C   ;(Lore)
+      : db $11   ;(Leap)
+      : db $13   ;(Dance)
+      : db $02   ;(Magic)
+      : db $17   ;(X-Magic)
+      : db $0C   ;(Lore)
 
 
 ;Construct in-battle Item menu, equipment sub-menus, and possessed Tools bitfield,
@@ -14748,7 +14776,7 @@ C254DC:  PHX
          AND #$07       ;isolate classification
          PHX
          TAX
-         LDA C25549,X  ;get a value indexed by item type
+         LDA C25549,X   ;get a value indexed by item type
          PLX
          ASL            ;multiply by 2
          TSB $2E73      ;turn on corresponding bits
@@ -14787,13 +14815,13 @@ C25546:  PLP
 
 ;Data
 C25549: db $A0 ;(Tool)
-        db $08 ;(Weapon)
-        db $80 ;(Armor)
-        db $04 ;(Shield)
-        db $80 ;(Hat)
-        db $80 ;(Relic)
-        db $00 ;(Item)
-        db $00 ;(extra?)
+      : db $08 ;(Weapon)
+      : db $80 ;(Armor)
+      : db $04 ;(Shield)
+      : db $80 ;(Hat)
+      : db $80 ;(Relic)
+      : db $00 ;(Item)
+      : db $00 ;(extra?)
 
 
 ;Generate Lore menus based on known Lores, and generate Magic menus based on spells
@@ -14882,14 +14910,14 @@ C255BA:  LDA $3034,Y    ;get spell #
          CMP #$18       ;compare to 24.  if it's 0-23, it's Attack
                         ;magic [Black].
          BCS C255C7     ;branch if it's 24 or higher
-         ADC $C2574B,X  ;add spell # to amount to adjust Attack
+         ADC C2574B,X   ;add spell # to amount to adjust Attack
                         ;spells positioning based on current
                         ;Magic Order
          BRA C255D9
 C255C7:  CMP #$2D       ;compare to 45.  if it's 24-44, it's Effect
                         ;magic [Gray].
          BCS C255D1     ;branch if it's 45 or higher
-         ADC $C25751,X  ;add spell # to amount to adjust Effect
+         ADC C25751,X   ;add spell # to amount to adjust Effect
                         ;spells positioning based on current
                         ;Magic Order
          BRA C255D9
@@ -14897,7 +14925,7 @@ C255D1:  CMP #$36       ;compare to 54.  if it's 45-53, it's Healing
                         ;magic [White].
          BCS C255E0     ;branch if it's 54 or higher, which apparently
                         ;means it's not a Magic spell at all.
-         ADC $C25757,X  ;add spell # to amount to adjust Healing
+         ADC C25757,X   ;add spell # to amount to adjust Healing
                         ;spells positioning based on current
                         ;Magic Order
 C255D9:  PHX            ;preserve Magic Order value
@@ -15088,7 +15116,7 @@ C256F6:  DEY
          STA $3CF8,X    ;save number of Magic spells possessed by this character
          RTS
 
-         BCS C25716     ;branch if we're pointing to a Lore slot.  otherwise,
+C25704:  BCS C25716     ;branch if we're pointing to a Lore slot.  otherwise,
                         ;we're pointing to a Magic spell slot.
          PHY
          TAY
@@ -15153,34 +15181,34 @@ C25749:  XBA            ;return MP cost in bottom of A
 
 ;For Spells 0 - 23 : Attack, Black
 C2574B: db $09  ;(Healing, Attack, Effect (HAE))
-        db $1E  ;(Healing, Effect, Attack (HEA))
-        db $00  ;(Attack, Effect, Healing (AEH))
-        db $00  ;(Attack, Healing, Effect (AHE))
-        db $1E  ;(Effect, Healing, Attack (EHA))
-        db $15  ;(Effect, Attack, Healing (EAH))
+      : db $1E  ;(Healing, Effect, Attack (HEA))
+      : db $00  ;(Attack, Effect, Healing (AEH))
+      : db $00  ;(Attack, Healing, Effect (AHE))
+      : db $1E  ;(Effect, Healing, Attack (EHA))
+      : db $15  ;(Effect, Attack, Healing (EAH))
 
 ;For Spells 24 - 44 : Effect, Gray
 C25751: db $09  ;(Healing, Attack, Effect (HAE))
-        db $F1  ;(Healing, Effect, Attack (HEA))
-        db $00  ;(Attack, Effect, Healing (AEH))
-        db $09  ;(Attack, Healing, Effect (AHE))
-        db $E8  ;(Effect, Healing, Attack (EHA))
-        db $E8  ;(Effect, Attack, Healing (EAH))
+      : db $F1  ;(Healing, Effect, Attack (HEA))
+      : db $00  ;(Attack, Effect, Healing (AEH))
+      : db $09  ;(Attack, Healing, Effect (AHE))
+      : db $E8  ;(Effect, Healing, Attack (EHA))
+      : db $E8  ;(Effect, Attack, Healing (EAH))
 
 ;For Spells 45 - 53 : White, Healing
 C25757: db $D3  ;(Healing, Attack, Effect (HAE))
-        db $D3  ;(Healing, Effect, Attack (HEA))
-        db $00  ;(Attack, Effect, Healing (AEH))
-        db $EB  ;(Attack, Healing, Effect (AHE))
-        db $E8  ;(Effect, Healing, Attack (EHA))
-        db $00  ;(Effect, Attack, Healing (EAH))
+      : db $D3  ;(Healing, Effect, Attack (HEA))
+      : db $00  ;(Attack, Effect, Healing (AEH))
+      : db $EB  ;(Attack, Healing, Effect (AHE))
+      : db $E8  ;(Effect, Healing, Attack (EHA))
+      : db $00  ;(Effect, Attack, Healing (EAH))
 
 
 ;Pointer table
 
-C2575D: dw $5716   ;(Gogo)
-        dw $570E   ;(Umaro or temporary character)
-        dw $5704   ;(normal character, ID 00h - 0Bh)
+C2575D: dw C25716   ;(Gogo)
+      : dw C2570E   ;(Umaro or temporary character)
+      : dw C25704   ;(normal character, ID 00h - 0Bh)
 
 
 ;Make entries on Esper, Magic, and Lore menus available and lit up or unavailable
@@ -15399,9 +15427,9 @@ C25875:  LDA $01,S
 
 
 ;Big ass targeting function.  It's not used to choose targets with the cursor, but
-;it can choose targets randomly (for all sorts of reasons), or refine ones previously
-;chosen [e.g. with the cursor].  This routine's so important, it uses several
-;helper functions.)
+; it can choose targets randomly (for all sorts of reasons), or refine ones previously
+; chosen [e.g. with the cursor].  This routine's so important, it uses several
+; helper functions.)
 
 C2587E:  PHX
          PHY
@@ -15869,7 +15897,7 @@ C25AE1:  SBC #$0A       ;should only be reached if ($3A91 AND 15 was >= 10
          ASL
          TAX
          JMP (C25AFA,X)
-         TYX            ;restore X from Y
+C25AE8:  TYX            ;restore X from Y
 C25AE9:  RTS
 
 
@@ -15877,24 +15905,24 @@ C25AE9:  RTS
 ;Note: choosing RTS will default to the (monster) entity draining anybody
 ; it has Seized on its next tick.)
 
-C25AEA: dw $5B45     ;(Set bit 3 of $3E4C,X - check regen, seizure, phantasm)
-        dw $5AE8     ;(RTS)
-        dw $5B3B     ;(Set bit 4 of $3E4C,X - check poison)
-        dw $5AE8     ;(RTS)
-        dw $5B45     ;(Set bit 3 of $3E4C,X - check regen, seizure, phantasm)
-        dw $5AE8     ;(RTS)
-        dw $5AE8     ;(RTS)
-        dw $5AE8     ;(RTS)
+C25AEA: dw C25B45     ;(Set bit 3 of $3E4C,X - check regen, seizure, phantasm)
+      : dw C25AE8     ;(RTS)
+      : dw C25B3B     ;(Set bit 4 of $3E4C,X - check poison)
+      : dw C25AE8     ;(RTS)
+      : dw C25B45     ;(Set bit 3 of $3E4C,X - check regen, seizure, phantasm)
+      : dw C25AE8     ;(RTS)
+      : dw C25AE8     ;(RTS)
+      : dw C25AE8     ;(RTS)
 
 
 ;Code pointers
 
-C25AFA: dw $5BB2     ;(Enemy Roulette completion)
-        dw $5BFC     ;(Increment time counters)
-        dw $5AE9     ;(RTS)
-        dw $5AE9     ;(RTS)
-        dw $5AE9     ;(RTS)
-        dw $5BD0     ;(Process "ready to run" characters, queue Flee command as needed)
+C25AFA: dw C25BB2     ;(Enemy Roulette completion)
+      : dw C25BFC     ;(Increment time counters)
+      : dw C25AE9     ;(RTS)
+      : dw C25AE9     ;(RTS)
+      : dw C25AE9     ;(RTS)
+      : dw C25BD0     ;(Process "ready to run" characters, queue Flee command as needed)
 
 
 ;Decrement Reflect, Freeze, and Sleep timers if applicable, and if any
@@ -15936,7 +15964,7 @@ C25B32:  LDA $B8
 
 ;Set to check for Poison on this entity's next tick
 
-         TYX
+C25B3B:  TYX
          LDA $3E4C,X
          ORA #$10
          STA $3E4C,X    ;Set bit 4 of $3E4C,X
@@ -15945,7 +15973,7 @@ C25B32:  LDA $B8
 
 ;Set to check for Regen, Seizure, Phantasm on this entity's next tick
 
-         TYX
+C25B45:  TYX
          LDA $3E4C,X
          ORA #$08
          STA $3E4C,X    ;Set bit 3 of $3E4C,X
@@ -16018,7 +16046,7 @@ C25BAB:  ORA $3AA1,X
 
 ;Enemy Roulette completion
 
-         LDA $2F43      ;top byte of Enemy Roulette target bitfield, which
+C25BB2:  LDA $2F43      ;top byte of Enemy Roulette target bitfield, which
                         ;is set at C1/B41A when the cursor winds down.
          BMI C25B4E     ;Exit if no targets are defined
          REP #$20       ;Set 16-bit A
@@ -16038,7 +16066,7 @@ C25BC7:  LDA #$0D       ;Condemned expiration enters here
 
 ;Process "ready to run" characters, queue Flee command as needed
 
-         LDA $2F45      ;party trying to run: 0 = no, 1 = yes
+C25BD0:  LDA $2F45      ;party trying to run: 0 = no, 1 = yes
          BEQ C25C1A     ;exit if not
          LDA $B1
          BIT #$02       ;is Can't Run set?
@@ -16067,7 +16095,7 @@ C25BF1:  LDA #$04
 
 ;Increment time counters
 
-         PHP
+C25BFC:  PHP
          REP #$20       ;set 16-bit A
          INC $3A44      ;increment Global battle time counter
          LDX #$12       ;point to last enemy
@@ -16606,7 +16634,7 @@ C25F9D:  LDA $1763,X
 ; 9999999, and if it exceeds that amount, cap it at 9999999.)
          LDX #$02       ;start pointing to topmost bytes of party GP
                         ;and GP limit
-C25FAB:  LDA C25FC7,X  ;get current byte of GP limit
+C25FAB:  LDA C25FC7,X   ;get current byte of GP limit
          CMP $1860,X    ;compare to corresponding byte of party GP
          BEQ C25FC2     ;if the byte values match, we don't know how
                         ;the overall 24-bit values compare yet, so
@@ -16617,7 +16645,7 @@ C25FAB:  LDA C25FC7,X  ;get current byte of GP limit
                         ;no need to alter anything or compare further
          LDX #$02       ;if we reached here, we know party GP must
                         ;exceed the 9999999 limit, so cap it.
-C25FB8:  LDA C25FC7,X
+C25FB8:  LDA C25FC7,X 
          STA $1860,X
          DEX
          BPL C25FB8     ;update all 3 bytes of the party's GP
@@ -16898,32 +16926,32 @@ C26149:  DEY
 
 ;Code Pointers
 
-C2614E: dw $6170  ;(~10% HP bonus)  (HP due to X)
-        dw $6174  ;(~30% HP bonus)  (HP due to X)
-        dw $6178  ;(50% HP bonus)   (HP due to X)
-        dw $6170  ;(~10% MP bonus)  (MP due to X)
-        dw $6174  ;(~30% MP bonus)  (MP due to X)
-        dw $6178  ;(50% MP bonus)   (MP due to X)
-        dw $61B0  ;(Double natural HP gain for level.  Curious...)
-        dw $6197  ;(No bonus)
-        dw $6197  ;(No bonus)
-        dw $619B  ;(Vigor bonus)    (+1 due to X value in caller)
-        dw $619B  ;(Vigor bonus)    (+2 due to X)
-        dw $619A  ;(Speed bonus)    (+1 due to X)
-        dw $619A  ;(Speed bonus)    (+2 due to X.  No Esper currently uses)
-        dw $6199  ;(Stamina bonus)  (+1 due to X)
-        dw $6199  ;(Stamina bonus)  (+2 due to X)
-        dw $6198  ;(MagPwr bonus)   (+1 due to X)
-        dw $6198  ;(MagPwr bonus)   (+2 due to X)
+C2614E: dw C26170  ;(~10% HP bonus)  (HP due to X)
+      : dw C26174  ;(~30% HP bonus)  (HP due to X)
+      : dw C26178  ;(50% HP bonus)   (HP due to X)
+      : dw C26170  ;(~10% MP bonus)  (MP due to X)
+      : dw C26174  ;(~30% MP bonus)  (MP due to X)
+      : dw C26178  ;(50% MP bonus)   (MP due to X)
+      : dw C261B0  ;(Double natural HP gain for level.  Curious...)
+      : dw C26197  ;(No bonus)
+      : dw C26197  ;(No bonus)
+      : dw C2619B  ;(Vigor bonus)    (+1 due to X value in caller)
+      : dw C2619B  ;(Vigor bonus)    (+2 due to X)
+      : dw C2619A  ;(Speed bonus)    (+1 due to X)
+      : dw C2619A  ;(Speed bonus)    (+2 due to X.  No Esper currently uses)
+      : dw C26199  ;(Stamina bonus)  (+1 due to X)
+      : dw C26199  ;(Stamina bonus)  (+2 due to X)
+      : dw C26198  ;(MagPwr bonus)   (+1 due to X)
+      : dw C26198  ;(MagPwr bonus)   (+2 due to X)
 
 
 ;Esper HP or MP bonus at level-up
 
-         LDA #$1A       ;26 => 10.15625% bonus
+C26170:  LDA #$1A       ;26 => 10.15625% bonus
          BRA C2617A
-         LDA #$4E       ;78 => 30.46875% bonus
+C26174:  LDA #$4E       ;78 => 30.46875% bonus
          BRA C2617A
-         LDA #$80       ;128 ==> 50% bonus
+C26178:  LDA #$80       ;128 ==> 50% bonus
 C2617A:  CPX #$0006     ;are we boosting MP rather than HP?
          LDX #$0000     ;start pointing to $FC, which holds normal HP to raise
          BCC C26184     ;if X was less than 6, we're just boosting HP,
@@ -16948,10 +16976,10 @@ C26197:  RTS
 ;Esper stat bonus at level-up.  Vigor, Speed, Stamina, or MagPwr.
 ; If Bit 1 of X is set, give +1 bonus.  If not, give +2.)
 
-         INY            ;enter here = 3 INYs = point to MagPwr
-         INY            ;enter here = 2 INYs = point to Stamina
-         INY            ;enter here = 1 INY  = point to Speed
-         TXA            ;enter here = 0 INYs = point to Vigor
+C26198:  INY            ;enter here = 3 INYs = point to MagPwr
+C26199:  INY            ;enter here = 2 INYs = point to Stamina
+C2619A:  INY            ;enter here = 1 INY  = point to Speed
+C2619B:  TXA            ;enter here = 0 INYs = point to Vigor
          LSR
          LSR            ;Carry holds bit 1 of X
          TYX            ;0 to 3 value.  determines which stat will be altered
@@ -16969,7 +16997,7 @@ C261AC:  STA $161A,X    ;save updated stat
 
 ;Give double natural HP gain for level?  Can't say I know when this happens...
 
-         TDC            ;Clear 16-bit A
+C261B0:  TDC            ;Clear 16-bit A
          TAX            ;X = 0
          LDA $FC
          BRA C2618E
@@ -17098,12 +17126,12 @@ C26235:  PHP
          LDX #$0002     ;The following loops will compare the character's
                         ;new Experience (held in $F6 - $F8 to 15000000, and
                         ;if it exceeds that amount, cap it at 15000000.
-C2624E:  LDA C26276,X
+C2624E:  LDA C26276,X 
          CMP $F6,X
          BEQ C26264
          BCS C26267
          LDX #$0002
-C2625B:  LDA C26276,X
+C2625B:  LDA C26276,X 
          STA $F6,X
          DEX
          BPL C2625B
@@ -17122,8 +17150,8 @@ C26267:  PLX
 ;Data (Experience cap: 15000000
 
 C26276: db $C0
-        db $E1
-        db $E4
+      : db $E1
+      : db $E4
 
 ;Add item in $2E72 - $2E76 buffer to Item menu
 
@@ -17377,7 +17405,7 @@ C263B4:  BCC C263DA     ;exit function if less than 5 targets have damage
          TAY
          LDX #$33D0
          LDA #$0013
-         MVN $7E7E    	;copy $33D0 thru $33E3, the damage variables for all
+         MVN $7E7E    ;copy $33D0 thru $33E3, the damage variables for all
                         ;10 targets, to some other memory location
          PLP
 C263DA:  RTS
@@ -17449,7 +17477,7 @@ C26429:  PLP
 
 ;Monster command script command #$FA
 
-         REP #$20       ;Set 16-bit accumulator
+C2642D:  REP #$20       ;Set 16-bit accumulator
          LDA $B8        ;Byte 2 & 3
          STA $3A2A      ;store in temporary bytes 3 and 4 for ($76
                         ;animation buffer
